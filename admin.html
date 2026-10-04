@@ -235,15 +235,25 @@
 
 <script>
 
-let products = JSON.parse(localStorage.getItem("shriRamProducts")) || [];
+let products = [];
 
-function saveProducts() {
-  localStorage.setItem("shriRamProducts", JSON.stringify(products));
+async function loadProducts() {
+  const { data, error } = await supabase
+    .from("products")
+    .select("*")
+    .eq("is_active", true)
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    console.error(error);
+    return;
+  }
+
+  products = data || [];
   displayProducts();
 }
 
-function addProduct() {
-
+async function addProduct() {
   const name = document.getElementById("productName").value.trim();
   const price = document.getElementById("productPrice").value;
   const category = document.getElementById("productCategory").value;
@@ -254,38 +264,46 @@ function addProduct() {
     return;
   }
 
-  products.push({
-    id: Date.now(),
-    name: name,
-    price: Number(price),
-    category: category,
-    image: image
-  });
+  const { error } = await supabase
+    .from("products")
+    .insert({
+      name: name,
+      price: Number(price),
+      category: category,
+      image_url: image,
+      is_active: true
+    });
 
-  saveProducts();
+  if (error) {
+    alert("Product add nahi hua: " + error.message);
+    return;
+  }
 
   document.getElementById("productName").value = "";
   document.getElementById("productPrice").value = "";
   document.getElementById("productImage").value = "";
 
   alert("Product added successfully.");
+  loadProducts();
 }
 
-function deleteProduct(id) {
+async function deleteProduct(id) {
+  if (!confirm("Kya aap is product ko delete karna chahte hain?")) return;
 
-  const confirmDelete = confirm(
-    "Kya aap is product ko delete karna chahte hain?"
-  );
+  const { error } = await supabase
+    .from("products")
+    .delete()
+    .eq("id", id);
 
-  if (!confirmDelete) return;
+  if (error) {
+    alert("Delete nahi hua: " + error.message);
+    return;
+  }
 
-  products = products.filter(product => product.id !== id);
-
-  saveProducts();
+  loadProducts();
 }
 
 function displayProducts() {
-
   const list = document.getElementById("productList");
   const empty = document.getElementById("emptyMessage");
 
@@ -298,7 +316,6 @@ function displayProducts() {
   }
 
   products.forEach(product => {
-
     const row = document.createElement("tr");
 
     row.innerHTML = `
@@ -306,9 +323,7 @@ function displayProducts() {
       <td>₹${product.price}</td>
       <td>${product.category}</td>
       <td>
-        <button
-          class="delete-btn"
-          onclick="deleteProduct(${product.id})">
+        <button class="delete-btn" onclick="deleteProduct(${product.id})">
           Delete
         </button>
       </td>
@@ -317,8 +332,7 @@ function displayProducts() {
     list.appendChild(row);
   });
 
-  document.getElementById("totalProducts").textContent =
-    products.length;
+  document.getElementById("totalProducts").textContent = products.length;
 
   document.getElementById("menProducts").textContent =
     products.filter(p => p.category === "Men").length;
@@ -327,7 +341,7 @@ function displayProducts() {
     products.filter(p => p.category === "Women").length;
 }
 
-displayProducts();
+window.addEventListener("load", loadProducts);
 
 </script>
 <script>
