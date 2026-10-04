@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Shri Ram Collection - Admin Panel</title>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     * {
       box-sizing: border-box;
@@ -188,24 +188,19 @@
       <h2>Add New Product</h2>
 
       <div class="form">
-
         <input id="productName" placeholder="Product name">
-
         <input id="productPrice" type="number" placeholder="Price">
-
         <select id="productCategory">
           <option value="Men">Men</option>
           <option value="Women">Women</option>
           <option value="Kids">Kids</option>
           <option value="New Arrivals">New Arrivals</option>
         </select>
-
         <input id="productImage" placeholder="Product image URL">
 
         <button class="add-btn full" onclick="addProduct()">
           + Add Product
         </button>
-
       </div>
 
       <div class="products">
@@ -220,7 +215,6 @@
               <th>Action</th>
             </tr>
           </thead>
-
           <tbody id="productList"></tbody>
         </table>
 
@@ -233,148 +227,150 @@
 
   </div>
 
-<script>
-const SUPABASE_URL = "https://zyreggzaomelsfddbibs.supabase.co";
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp5cmVnZ3phb21lbHNmZGRiaWJzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTEwOTY2NDMsImV4cCI6MjEwNjY3MjY0M30.11nIKv060IIgvxQWScL1NjMhrmXQF50jRCkMIDCsGmg";
-
-const supabase = window.supabase.createClient(
-  SUPABASE_URL,
-  SUPABASE_ANON_KEY
-);
-let products = [];
-
-async function loadProducts() {
-  const { data, error } = await supabase
-    .from("products")
-    .select("*")
-    .eq("is_active", true)
-    .order("created_at", { ascending: false });
-
-  if (error) {
-    console.error(error);
-    return;
-  }
-
-  products = data || [];
-  displayProducts();
-}
-
-async function addProduct() {
-  const name = document.getElementById("productName").value.trim();
-  const price = document.getElementById("productPrice").value;
-  const category = document.getElementById("productCategory").value;
-  const image = document.getElementById("productImage").value.trim();
-
-  if (!name || !price) {
-    alert("Product name aur price bharna zaroori hai.");
-    return;
-  }
-
-  const { error } = await supabase
-    .from("products")
-    .insert({
-      name: name,
-      price: Number(price),
-      category: category,
-      image_url: image,
-      is_active: true
-    });
-
-  if (error) {
-    alert("Product add nahi hua: " + error.message);
-    return;
-  }
-
-  document.getElementById("productName").value = "";
-  document.getElementById("productPrice").value = "";
-  document.getElementById("productImage").value = "";
-
-  alert("Product added successfully.");
-  loadProducts();
-}
-
-async function deleteProduct(id) {
-  if (!confirm("Kya aap is product ko delete karna chahte hain?")) return;
-
-  const { error } = await supabase
-    .from("products")
-    .delete()
-    .eq("id", id);
-
-  if (error) {
-    alert("Delete nahi hua: " + error.message);
-    return;
-  }
-
-  loadProducts();
-}
-
-function displayProducts() {
-  const list = document.getElementById("productList");
-  const empty = document.getElementById("emptyMessage");
-
-  list.innerHTML = "";
-
-  if (products.length === 0) {
-    empty.style.display = "block";
-  } else {
-    empty.style.display = "none";
-  }
-
-  products.forEach(product => {
-    const row = document.createElement("tr");
-
-    row.innerHTML = `
-      <td>${product.name}</td>
-      <td>₹${product.price}</td>
-      <td>${product.category}</td>
-      <td>
-        <button class="delete-btn" onclick="deleteProduct(${product.id})">
-          Delete
-        </button>
-      </td>
-    `;
-
-    list.appendChild(row);
-  });
-
-  document.getElementById("totalProducts").textContent = products.length;
-
-  document.getElementById("menProducts").textContent =
-    products.filter(p => p.category === "Men").length;
-
-  document.getElementById("womenProducts").textContent =
-    products.filter(p => p.category === "Women").length;
-}
-
-window.addEventListener("load", loadProducts);
-
-</script>
-<script>
-
-</script>
   <script>
-  async function checkAdminAccess() {
-    const { data: { session } } = await supabase.auth.getSession();
+    const SUPABASE_URL = "https://zyreggzaomelsfddbibs.supabase.co";
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp5cmVnZ3phb21lbHNmZGRiaWJzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTEwOTY2NDMsImV4cCI6MjEwNjY3MjY0M30.11nIKv060IIgvxQWScL1NjMhrmXQF50jRCkMIDCsGmg";
 
-    if (!session) {
-      window.location.href = "login.html";
-      return;
+    const supabase = window.supabase.createClient(
+      SUPABASE_URL,
+      SUPABASE_ANON_KEY
+    );
+
+    let products = [];
+
+    // Admin access check pehle chalega
+    async function checkAdminAccess() {
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+
+      if (sessionError || !session) {
+        window.location.href = "login.html";
+        return false;
+      }
+
+      const { data: admin, error } = await supabase
+        .from("admins")
+        .select("user_id")
+        .eq("user_id", session.user.id)
+        .maybeSingle();
+
+      if (error || !admin) {
+        await supabase.auth.signOut();
+        window.location.href = "login.html";
+        return false;
+      }
+
+      return true;
     }
 
-    const { data: admin, error } = await supabase
-      .from("admins")
-      .select("user_id")
-      .eq("user_id", session.user.id)
-      .maybeSingle();
+    async function loadProducts() {
+      const { data, error } = await supabase
+        .from("products")
+        .select("*")
+        .eq("is_active", true)
+        .order("created_at", { ascending: false });
 
-    if (error || !admin) {
-      await supabase.auth.signOut();
-      window.location.href = "login.html";
+      if (error) {
+        console.error(error);
+        return;
+      }
+
+      products = data || [];
+      displayProducts();
     }
-  }
 
-  checkAdminAccess();
-</script>
+    async function addProduct() {
+      const name = document.getElementById("productName").value.trim();
+      const price = document.getElementById("productPrice").value;
+      const category = document.getElementById("productCategory").value;
+      const image = document.getElementById("productImage").value.trim();
+
+      if (!name || !price) {
+        alert("Product name aur price bharna zaroori hai.");
+        return;
+      }
+
+      const { error } = await supabase
+        .from("products")
+        .insert({
+          name: name,
+          price: Number(price),
+          category: category,
+          image_url: image,
+          is_active: true
+        });
+
+      if (error) {
+        alert("Product add nahi hua: " + error.message);
+        return;
+      }
+
+      document.getElementById("productName").value = "";
+      document.getElementById("productPrice").value = "";
+      document.getElementById("productImage").value = "";
+
+      alert("Product added successfully.");
+      loadProducts();
+    }
+
+    async function deleteProduct(id) {
+      if (!confirm("Kya aap is product ko delete karna chahte hain?")) return;
+
+      const { error } = await supabase
+        .from("products")
+        .delete()
+        .eq("id", id);
+
+      if (error) {
+        alert("Delete nahi hua: " + error.message);
+        return;
+      }
+
+      loadProducts();
+    }
+
+    function displayProducts() {
+      const list = document.getElementById("productList");
+      const empty = document.getElementById("emptyMessage");
+
+      list.innerHTML = "";
+
+      if (products.length === 0) {
+        empty.style.display = "block";
+      } else {
+        empty.style.display = "none";
+      }
+
+      products.forEach(product => {
+        const row = document.createElement("tr");
+
+        row.innerHTML = `
+          <td>${product.name}</td>
+          <td>₹${product.price}</td>
+          <td>${product.category}</td>
+          <td>
+            <button class="delete-btn" onclick="deleteProduct(${product.id})">
+              Delete
+            </button>
+          </td>
+        `;
+
+        list.appendChild(row);
+      });
+
+      document.getElementById("totalProducts").textContent = products.length;
+      document.getElementById("menProducts").textContent =
+        products.filter(p => p.category === "Men").length;
+      document.getElementById("womenProducts").textContent =
+        products.filter(p => p.category === "Women").length;
+    }
+
+    // Page load hone par sabse pehle admin check hoga, fir products load honge
+    window.addEventListener("load", async () => {
+      const isAdmin = await checkAdminAccess();
+      if (isAdmin) {
+        loadProducts();
+      }
+    });
+  </script>
 </body>
-</html>
+</html> ya code pura
