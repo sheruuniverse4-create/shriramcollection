@@ -234,7 +234,13 @@
   </div>
 
 <script>
+const SUPABASE_URL = "https://zyreggzaomelsfddbibs.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp5cmVnZ3phb21lbHNmZGRiaWJzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTEwOTY2NDMsImV4cCI6MjEwNjY3MjY0M30.11nIKv060IIgvxQWScL1NjMhrmXQF50jRCkMIDCsGmg";
 
+const supabase = window.supabase.createClient(
+  SUPABASE_URL,
+  SUPABASE_ANON_KEY
+);
 let products = [];
 
 async function loadProducts() {
@@ -345,13 +351,7 @@ window.addEventListener("load", loadProducts);
 
 </script>
 <script>
-const SUPABASE_URL = "https://zyreggzaomelsfddbibs.supabase.co";
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp5cmVnZ3phb21lbHNmZGRiaWJzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTEwOTY2NDMsImV4cCI6MjEwNjY3MjY0M30.11nIKv060IIgvxQWScL1NjMhrmXQF50jRCkMIDCsGmg";
 
-const supabase = window.supabase.createClient(
-  SUPABASE_URL,
-  SUPABASE_ANON_KEY
-);
 </script>
   <script>
   async function checkAdminAccess() {
