@@ -339,5 +339,28 @@ const supabase = window.supabase.createClient(
   SUPABASE_ANON_KEY
 );
 </script>
+  <script>
+  async function checkAdminAccess() {
+    const { data: { session } } = await supabase.auth.getSession();
+
+    if (!session) {
+      window.location.href = "login.html";
+      return;
+    }
+
+    const { data: admin, error } = await supabase
+      .from("admins")
+      .select("user_id")
+      .eq("user_id", session.user.id)
+      .maybeSingle();
+
+    if (error || !admin) {
+      await supabase.auth.signOut();
+      window.location.href = "login.html";
+    }
+  }
+
+  checkAdminAccess();
+</script>
 </body>
 </html>
