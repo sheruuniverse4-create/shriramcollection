@@ -270,27 +270,28 @@ document.getElementById("orderForm")
     return;
   }
 
-  const { error } = await sb
-    .from("orders")
-    .insert({
+const { error } = await sb
+  .from("order")
+  .insert({
+    product_id: product.id,
+    name: customerName,
+    mobile: mobile,
+    alternate_mobile: alternateMobile,
+    address: address,
+    size: size,
+    quantity: quantity,
+    price: product.price
+  });
 
-      product_id: product.id,
+if(error){
 
-      product_name: product.name,
+  console.error(error);
 
-      price: product.price,
+  document.getElementById("message").textContent =
+    "Order save nahi hua. Please try again.";
 
-      customer_name: customerName,
-
-      mobile: mobile,
-
-      alternate_mobile: alternateMobile,
-
-      address: address,
-
-      size: size,
-
-      quantity: quantity
+  return;
+}
 
     });
 
