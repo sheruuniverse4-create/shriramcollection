@@ -1,1 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+<title>Direct Order - Shri Ram Collection</title>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+body{
+  font-family:Arial,sans-serif;
+  background:#f7f7f7;
+  margin:0;
+  padding:20px;
+}
+
+.container{
+  max-width:600px;
+  margin:auto;
+  background:white;
+  padding:25px;
+  border-radius:15px;
+}
+
+h1{
+  text-align:center;
+  margin-bottom:25px;
+}
+
+.product-box{
+  text-align:center;
+  margin-bottom:25px;
+}
+
+.product-box img{
+  max-width:220px;
+  max-height:250px;
+  border-radius:10px;
+}
+
+.product-name{
+  font-size:24px;
+  font-weight:bold;
+  margin-top:10px;
+}
+
+.price{
+  font-size:22px;
+  font-weight:bold;
+  margin:8px 0;
+}
+
+label{
+  display:block;
+  font-weight:bold;
+  margin-top:15px;
+  margin-bottom:6px;
+}
+
+input,
+textarea,
+select{
+  width:100%;
+  box-sizing:border-box;
+  padding:12px;
+  border:1px solid #ccc;
+  border-radius:8px;
+  font-size:16px;
+}
+
+textarea{
+  min-height:100px;
+}
+
+button{
+  width:100%;
+  padding:14px;
+  margin-top:25px;
+  border:0;
+  border-radius:8px;
+  background:#198754;
+  color:white;
+  font-size:18px;
+  font-weight:bold;
+  cursor:pointer;
+}
+
+#message{
+  margin-top:15px;
+  text-align:center;
+  font-weight:bold;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<h1>Shri Ram Collection</h1>
+
+<div id="productBox" class="product-box">
+  Loading product...
+</div>
+
+<form id="orderForm">
+
+<label>Name</label>
+<input type="text" id="customerName" required>
+
+<label>Mobile Number</label>
+<input
+  type="tel"
+  id="mobile"
+  required
+  pattern="[0-9]{10}"
+  maxlength="10"
+  placeholder="10 digit mobile number">
+
+<label>Alternate Mobile Number</label>
+<input
+  type="tel"
+  id="alternateMobile"
+  required
+  pattern="[0-9]{10}"
+  maxlength="10"
+  placeholder="10 digit alternate number">
+
+<label>Full Address</label>
+<textarea id="address" required></textarea>
+
+<label>Select Size</label>
+<select id="size" required>
+  <option value="">Select Size</option>
+</select>
+
+<label>Quantity</label>
+<input
+  type="number"
+  id="quantity"
+  value="1"
+  min="1"
+  required>
+
+<button type="submit">
+  Place Direct Order
+</button>
+
+<div id="message"></div>
+
+</form>
+
+</div>
+
+<script>
+
+const SUPABASE_URL =
+"https://zyreggzaomelsfddbibs.supabase.co";
+
+const SUPABASE_ANON_KEY =
+"PASTE_YOUR_EXISTING_ANON_KEY_HERE";
+
+const sb = window.supabase.createClient(
+  SUPABASE_URL,
+  SUPABASE_ANON_KEY
+);
+
+const params = new URLSearchParams(window.location.search);
+
+const productId = params.get("id");
+
+let product = null;
+
+async function loadProduct(){
+
+  if(!productId){
+    document.getElementById("productBox").innerHTML =
+      "<p>Product nahi mila.</p>";
+    return;
+  }
+
+  const { data, error } = await sb
+    .from("products")
+    .select("id,name,price,image_url,size")
+    .eq("id", productId)
+    .eq("is_active", true)
+    .maybeSingle();
+
+  if(error || !data){
+
+    console.error(error);
+
+    document.getElementById("productBox").innerHTML =
+      "<p>Product load nahi hua.</p>";
+
+    return;
+  }
+
+  product = data;
+
+  const imageHTML = product.image_url
+    ? `<img src="${product.image_url}" alt="${product.name}">`
+    : "";
+
+  document.getElementById("productBox").innerHTML = `
+    ${imageHTML}
+    <div class="product-name">${product.name}</div>
+    <div class="price">₹${product.price}</div>
+  `;
+
+  const sizeSelect = document.getElementById("size");
+
+  const sizes = (product.size || "")
+    .split(",")
+    .map(s => s.trim())
+    .filter(Boolean);
+
+  sizes.forEach(size => {
+
+    const option = document.createElement("option");
+
+    option.value = size;
+    option.textContent = size;
+
+    sizeSelect.appendChild(option);
+
+  });
+
+}
+
+document.getElementById("orderForm")
+.addEventListener("submit", async function(e){
+
+  e.preventDefault();
+
+  if(!product){
+    alert("Product details load nahi hue.");
+    return;
+  }
+
+  const customerName =
+    document.getElementById("customerName").value.trim();
+
+  const mobile =
+    document.getElementById("mobile").value.trim();
+
+  const alternateMobile =
+    document.getElementById("alternateMobile").value.trim();
+
+  const address =
+    document.getElementById("address").value.trim();
+
+  const size =
+    document.getElementById("size").value;
+
+  const quantity =
+    Number(document.getElementById("quantity").value);
+
+  if(!customerName ||
+     !mobile ||
+     !alternateMobile ||
+     !address ||
+     !size ||
+     !quantity){
+
+    alert("Please sabhi details bhariye.");
+
+    return;
+  }
+
+  const { error } = await sb
+    .from("orders")
+    .insert({
+
+      product_id: product.id,
+
+      product_name: product.name,
+
+      price: product.price,
+
+      customer_name: customerName,
+
+      mobile: mobile,
+
+      alternate_mobile: alternateMobile,
+
+      address: address,
+
+      size: size,
+
+      quantity: quantity
+
+    });
+
+  if(error){
+
+    console.error(error);
+
+    document.getElementById("message").textContent =
+      "Order save nahi hua. Please try again.";
+
+    return;
+  }
+
+  document.getElementById("message").textContent =
+    "Order successfully placed!";
+
+  document.getElementById("orderForm").reset();
+
+});
+
+loadProduct();
+
+</script>
+
+</body>
+</html>
