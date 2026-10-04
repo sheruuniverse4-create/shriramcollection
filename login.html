@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Shri Ram Collection - Admin Login</title>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f5f6fa;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+
+    .login-box {
+      width: 90%;
+      max-width: 400px;
+      background: white;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 5px 25px rgba(0,0,0,0.12);
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 8px;
+    }
+
+    .subtitle {
+      text-align: center;
+      color: #666;
+      margin-bottom: 25px;
+    }
+
+    label {
+      display: block;
+      margin-top: 15px;
+      margin-bottom: 6px;
+      font-weight: bold;
+    }
+
+    input {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #ccc;
+      border-radius: 7px;
+      font-size: 16px;
+    }
+
+    button {
+      width: 100%;
+      margin-top: 22px;
+      padding: 13px;
+      border: none;
+      border-radius: 7px;
+      background: #111827;
+      color: white;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #000;
+    }
+
+    #message {
+      text-align: center;
+      margin-top: 15px;
+      color: #c00;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="login-box">
+    <h1>Shri Ram Collection</h1>
+    <div class="subtitle">Admin Login</div>
+
+    <label>Email</label>
+    <input type="email" id="email" placeholder="Enter admin email">
+
+    <label>Password</label>
+    <input type="password" id="password" placeholder="Enter password">
+
+    <button onclick="login()">Login</button>
+
+    <div id="message"></div>
+  </div>
+
+  <script>
+    const SUPABASE_URL = "https://zyreggzaomelsfddibbs.supabase.co";
+
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp5cmVnZ3phb21lbHNmZGRiaWJzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTEwOTY2NDMsImV4cCI6MjEwNjY3MjY0M30.11nIKv060IIgvxQWScL1NjMhrmXQF50jRCkMIDCsGmg";
+
+    const supabase = window.supabase.createClient(
+      SUPABASE_URL,
+      SUPABASE_ANON_KEY
+    );
+
+    async function login() {
+      const email = document.getElementById("email").value.trim();
+      const password = document.getElementById("password").value;
+      const message = document.getElementById("message");
+
+      message.textContent = "";
+
+      if (!email || !password) {
+        message.textContent = "Email aur password dono bharo.";
+        return;
+      }
+
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: email,
+        password: password
+      });
+
+      if (error) {
+        message.textContent = "Login failed: " + error.message;
+        return;
+      }
+
+      const { data: admin, error: adminError } = await supabase
+        .from("admins")
+        .select("user_id")
+        .eq("user_id", data.user.id)
+        .maybeSingle();
+
+      if (adminError || !admin) {
+        await supabase.auth.signOut();
+        message.textContent = "Access denied. Admin account required.";
+        return;
+      }
+
+      window.location.href = "admin.html";
+    }
+  </script>
+
+</body>
+</html>
