@@ -99,52 +99,61 @@
   </div>
 
   <script>
-    const SUPABASE_URL = "https://zyreggzaomelsfddibbs.supabase.co";
+const SUPABASE_URL = "https://zyreggzaomelsfddibbs.supabase.co";
 
-    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp5cmVnZ3phb21lbHNmZGRiaWJzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTEwOTY2NDMsImV4cCI6MjEwNjY3MjY0M30.11nIKv060IIgvxQWScL1NjMhrmXQF50jRCkMIDCsGmg";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp5cmVnZ3phb21lbHNmZGRiaWJzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTEwOTY2NDMsImV4cCI6MjEwNjY3MjY0M30.11nIKv060IIgvxQWScL1NjMhrmXQF50jRCkMIDCsGmg";
 
-    const supabase = window.supabase.createClient(
-      SUPABASE_URL,
-      SUPABASE_ANON_KEY
-    );
+let supabaseClient = null;
 
-    async function login() {
-      const email = document.getElementById("email").value.trim();
-      const password = document.getElementById("password").value;
-      const message = document.getElementById("message");
+if (window.supabase) {
+  supabaseClient = window.supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_ANON_KEY
+  );
+}
 
-      message.textContent = "";
+async function login() {
+  const email = document.getElementById("email").value.trim();
+  const password = document.getElementById("password").value;
+  const message = document.getElementById("message");
 
-      if (!email || !password) {
-        message.textContent = "Email aur password dono bharo.";
-        return;
-      }
+  message.textContent = "";
 
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email: email,
-        password: password
-      });
+  if (!email || !password) {
+    message.textContent = "Email aur password dono bharo.";
+    return;
+  }
 
-      if (error) {
-        message.textContent = "Login failed: " + error.message;
-        return;
-      }
+  if (!supabaseClient) {
+    message.textContent = "Supabase load nahi hua. Page refresh karo.";
+    return;
+  }
 
-      const { data: admin, error: adminError } = await supabase
-        .from("admins")
-        .select("user_id")
-        .eq("user_id", data.user.id)
-        .maybeSingle();
+  const { data, error } =
+    await supabaseClient.auth.signInWithPassword({
+      email: email,
+      password: password
+    });
 
-      if (adminError || !admin) {
-        await supabase.auth.signOut();
-        message.textContent = "Access denied. Admin account required.";
-        return;
-      }
+  if (error) {
+    message.textContent = "Login failed: " + error.message;
+    return;
+  }
 
-      window.location.href = "admin.html";
-    }
-  </script>
+  const { data: admin, error: adminError } =
+    await supabaseClient
+      .from("admins")
+      .select("user_id")
+      .eq("user_id", data.user.id)
+      .maybeSingle();
 
-</body>
-</html>
+  if (adminError || !admin) {
+    await supabaseClient.auth.signOut();
+    message.textContent =
+      "Access denied. Admin account required.";
+    return;
+  }
+
+  window.location.href = "admin.html";
+}
+</script>
