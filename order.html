@@ -173,9 +173,9 @@ const productId = params.get("id");
 
 let product = null;
 
-async function loadProduct(){
+async function loadProduct() {
 
-  if(!productId){
+  if (!productId) {
     document.getElementById("productBox").innerHTML =
       "<p>Product nahi mila.</p>";
     return;
@@ -183,13 +183,12 @@ async function loadProduct(){
 
   const { data, error } = await sb
     .from("products")
-    .select("id,name,price,image_url,size")
+    .select("id,name,price,image_url")
     .eq("id", productId)
     .eq("is_active", true)
     .maybeSingle();
 
-  if(error || !data){
-
+  if (error || !data) {
     console.error(error);
 
     document.getElementById("productBox").innerHTML =
@@ -212,30 +211,19 @@ async function loadProduct(){
 
   const sizeSelect = document.getElementById("size");
 
-  const sizes = (product.size || "")
-    .split(",")
-    .map(s => s.trim())
-    .filter(Boolean);
-
-  sizes.forEach(size => {
-
+  ["S", "M", "L", "XL"].forEach(size => {
     const option = document.createElement("option");
-
     option.value = size;
     option.textContent = size;
-
     sizeSelect.appendChild(option);
-
   });
-
 }
 
-document.getElementById("orderForm")
-.addEventListener("submit", async function(e){
+document.getElementById("orderForm").addEventListener("submit", async function(e) {
 
   e.preventDefault();
 
-  if(!product){
+  if (!product) {
     alert("Product details load nahi hue.");
     return;
   }
@@ -258,45 +246,27 @@ document.getElementById("orderForm")
   const quantity =
     Number(document.getElementById("quantity").value);
 
-  if(!customerName ||
-     !mobile ||
-     !alternateMobile ||
-     !address ||
-     !size ||
-     !quantity){
+  if (!customerName || !mobile || !alternateMobile ||
+      !address || !size || !quantity) {
 
     alert("Please sabhi details bhariye.");
-
     return;
   }
 
-const { error } = await sb
-  .from("order")
-  .insert({
-    product_id: product.id,
-    name: customerName,
-    mobile: mobile,
-    alternate_mobile: alternateMobile,
-    address: address,
-    size: size,
-    quantity: quantity,
-    price: product.price
-  });
-
-if(error){
-
-  console.error(error);
-
-  document.getElementById("message").textContent =
-    "Order save nahi hua. Please try again.";
-
-  return;
-}
-
+  const { error } = await sb
+    .from("order")
+    .insert({
+      product_id: product.id,
+      name: customerName,
+      mobile: mobile,
+      alternate_mobile: alternateMobile,
+      address: address,
+      size: size,
+      quantity: quantity,
+      price: product.price
     });
 
-  if(error){
-
+  if (error) {
     console.error(error);
 
     document.getElementById("message").textContent =
