@@ -318,14 +318,46 @@ function displayOrders() {
       order.size,
       order.quantity,
       "₹" + (order.price || 0),
-      new Date(order.created_at).toLocaleString("en-IN"),
-      "Pending",
+      new Date(order.created_at).toLocaleString("en-IN")
     ].forEach(value => {
       const td = document.createElement("td");
       td.textContent = value || "";
       row.appendChild(td);
     });
+const statusTd = document.createElement("td");
 
+const select = document.createElement("select");
+
+["Pending", "Confirmed", "Shipped", "Out for Delivery", "Delivered", "Cancelled"]
+.forEach(status => {
+  const option = document.createElement("option");
+  option.value = status;
+  option.textContent = status;
+
+  if ((order.status || "Pending") === status) {
+    option.selected = true;
+  }
+
+  select.appendChild(option);
+});
+
+select.onchange = async () => {
+  const { error } = await sb
+    .from("order")
+    .update({ status: select.value })
+    .eq("id", order.id);
+
+  if (error) {
+    alert("Status update nahi hua");
+    console.error(error);
+    return;
+  }
+
+  order.status = select.value;
+};
+
+statusTd.appendChild(select);
+row.appendChild(statusTd);
     list.appendChild(row);
   });
 }
