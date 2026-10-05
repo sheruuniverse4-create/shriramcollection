@@ -163,7 +163,30 @@ document
 // =========================
 // CHECK LOGIN
 // =========================
+async function checkCustomerLogin() {
 
+  const { data, error } =
+    await supabaseClient.auth.getSession();
+
+  if (error) {
+    console.error("Session check error:", error);
+    return;
+  }
+
+  if (data.session) {
+    window.location.replace("index.html");
+  }
+}
+
+checkCustomerLogin();
+
+supabaseClient.auth.onAuthStateChange((event, session) => {
+
+  if (event === "SIGNED_IN" && session) {
+    window.location.replace("index.html");
+  }
+
+});
 
 </script>
 
