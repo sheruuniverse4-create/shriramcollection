@@ -318,7 +318,8 @@ function displayOrders() {
       order.size,
       order.quantity,
       "₹" + (order.price || 0),
-      new Date(order.created_at).toLocaleString("en-IN")
+      new Date(order.created_at).toLocaleString("en-IN"),
+      order.status "Pending",
     ].forEach(value => {
       const td = document.createElement("td");
       td.textContent = value || "";
