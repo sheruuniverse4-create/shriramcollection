@@ -104,8 +104,15 @@
 const SUPABASE_URL =
   "https://zyreggzaomelsfddbibs.supabase.co";
 
+/*
+  IMPORTANT:
+  नीचे अपनी current file वाली SUPABASE_ANON_KEY की
+  existing line ही रखनी है.
+*/
+
 const SUPABASE_ANON_KEY =
   "sb_publishable_gNzfXDlTuBD2K2Stiu4iyQ_c4n247pY";
+
 
 const supabaseClient =
   window.supabase.createClient(
@@ -122,9 +129,7 @@ const supabaseClient =
   );
 
 
-// =========================
-// GOOGLE CUSTOMER LOGIN
-// =========================
+// GOOGLE LOGIN
 
 async function googleLogin() {
 
@@ -141,24 +146,24 @@ async function googleLogin() {
 
       options: {
         redirectTo:
-          "https://sheruuniverse4-create.github.io/shriramcollection/customer-login.html"
+          "https://sheruuniverse4-create.github.io/shriramcollection/login.html"
       }
     });
 
-if (error) {
+  if (error) {
 
     message.style.color = "#c00";
 
     message.textContent =
       "Google login failed: " +
       error.message;
+
+    console.error(error);
   }
 }
 
 
-// =========================
-// GOOGLE LOGIN BUTTON
-// =========================
+// GOOGLE BUTTON
 
 document
   .getElementById("googleLoginBtn")
@@ -168,33 +173,57 @@ document
   );
 
 
-// =========================
 // CHECK LOGIN
-// =========================
-async function checkCustomerLogin() {
+
+async function checkLogin() {
 
   const { data, error } =
     await supabaseClient.auth.getSession();
 
   if (error) {
-    console.error("Session check error:", error);
+
+    console.error(
+      "Session check error:",
+      error
+    );
+
     return;
   }
 
   if (data.session) {
-    window.location.replace("index.html");
+
+    window.location.replace(
+      "index.html"
+    );
   }
 }
 
-checkCustomerLogin();
 
-supabaseClient.auth.onAuthStateChange((event, session) => {
+// AUTH STATE
 
-  if (event === "SIGNED_IN" && session) {
-    window.location.replace("index.html");
+supabaseClient.auth.onAuthStateChange(
+  (event, session) => {
+
+    if (
+      event === "SIGNED_IN" &&
+      session
+    ) {
+
+      window.location.replace(
+        "index.html"
+      );
+    }
   }
+);
 
-});
+
+// PAGE LOAD
+
+checkLogin();
+
+setTimeout(() => {
+  checkLogin();
+}, 1500);
 
 </script>
 
