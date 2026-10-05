@@ -263,7 +263,8 @@ document.getElementById("orderForm").addEventListener("submit", async function(e
       address: address,
       size: size,
       quantity: quantity,
-      price: product.price
+      price: product.price,
+      status:"Pending"
     });
 
   if (error) {
