@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Shri Ram Collection - Login</title>
+  <title>Shri Ram Collection - Customer Login</title>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
@@ -44,7 +44,6 @@
 
     button {
       width: 100%;
-      margin-top: 15px;
       padding: 13px;
       border: none;
       border-radius: 7px;
@@ -62,47 +61,18 @@
       background: #f5f5f5;
     }
 
-    .admin-btn {
-      background: #111827;
-      color: white;
-    }
-
-    .admin-btn:hover {
-      background: #000;
-    }
-
-    .divider {
-      text-align: center;
-      margin: 25px 0;
-      color: #888;
-    }
-
-    label {
-      display: block;
-      margin-top: 15px;
-      margin-bottom: 6px;
-      font-weight: bold;
-    }
-
-    input {
-      width: 100%;
-      padding: 12px;
-      border: 1px solid #ccc;
-      border-radius: 7px;
-      font-size: 16px;
-    }
-
     #message {
       text-align: center;
       margin-top: 15px;
       color: #c00;
     }
 
-    .admin-title {
-      margin-top: 25px;
+    .back-btn {
+      display: block;
       text-align: center;
-      font-size: 14px;
-      color: #777;
+      margin-top: 20px;
+      color: #111827;
+      text-decoration: none;
     }
   </style>
 </head>
@@ -117,48 +87,31 @@
       Customer Login
     </div>
 
-    <button class="google-btn" onclick="googleLogin()">
+    <button class="google-btn" id="googleLoginBtn">
       Continue with Google
-    </button>
-
-    <div class="divider">— Admin Login —</div>
-
-    <div class="admin-title">
-      Owner/Admin access only
-    </div>
-
-    <label>Email</label>
-    <input
-      type="email"
-      id="email"
-      placeholder="Enter admin email"
-    >
-
-    <label>Password</label>
-    <input
-      type="password"
-      id="password"
-      placeholder="Enter password"
-    >
-
-    <button class="admin-btn" onclick="adminLogin()">
-      Admin Login
     </button>
 
     <div id="message"></div>
 
+    <a href="index.html" class="back-btn">
+      ← Back to Website
+    </a>
+
   </div>
 
 <script>
-const SUPABASE_URL = "https://zyreggzaomelsfddbibs.supabase.co";
+
+const SUPABASE_URL =
+  "https://zyreggzaomelsfddbibs.supabase.co";
 
 const SUPABASE_ANON_KEY =
   "sb_publishable_gNzfXDlTuBD2K2Stiu4iyQ_c4n247pY";
 
-const supabaseClient = window.supabase.createClient(
-  SUPABASE_URL,
-  SUPABASE_ANON_KEY
-);
+const supabaseClient =
+  window.supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_ANON_KEY
+  );
 
 
 // =========================
@@ -167,113 +120,65 @@ const supabaseClient = window.supabase.createClient(
 
 async function googleLogin() {
 
-  const message = document.getElementById("message");
-  message.style.color = "#c00";
-  message.textContent = "Google login opening...";
+  const message =
+    document.getElementById("message");
+
+  message.style.color = "#555";
+  message.textContent =
+    "Google login opening...";
 
   const { error } =
     await supabaseClient.auth.signInWithOAuth({
       provider: "google",
+
       options: {
         redirectTo:
-          window.location.origin +
-          "/shriramcollection/login.html"
+          "https://sheruuniverse4-create.github.io/shriramcollection/customer-login.html"
       }
     });
 
   if (error) {
+
+    message.style.color = "#c00";
+
     message.textContent =
-      "Google login failed: " + error.message;
+      "Google login failed: " +
+      error.message;
   }
 }
 
 
 // =========================
-// ADMIN EMAIL/PASSWORD LOGIN
+// GOOGLE LOGIN BUTTON
 // =========================
 
-async function adminLogin() {
-
-  const email =
-    document.getElementById("email").value.trim();
-
-  const password =
-    document.getElementById("password").value;
-
-  const message =
-    document.getElementById("message");
-
-  message.style.color = "#c00";
-  message.textContent = "";
-
-  if (!email || !password) {
-    message.textContent =
-      "Email aur password dono bharo.";
-    return;
-  }
-
-  const { data, error } =
-    await supabaseClient.auth.signInWithPassword({
-      email: email,
-      password: password
-    });
-
-  if (error) {
-    message.textContent =
-      "Login failed: " + error.message;
-    return;
-  }
-
-  const { data: admin, error: adminError } =
-    await supabaseClient
-      .from("admins")
-      .select("user_id")
-      .eq("user_id", data.user.id)
-      .maybeSingle();
-
-  if (adminError || !admin) {
-
-    await supabaseClient.auth.signOut();
-
-    message.textContent =
-      "Access denied. Admin account required.";
-
-    return;
-  }
-
-  window.location.href = "admin.html";
-}
+document
+  .getElementById("googleLoginBtn")
+  .addEventListener(
+    "click",
+    googleLogin
+  );
 
 
 // =========================
-// CHECK GOOGLE LOGIN
+// CHECK LOGIN
 // =========================
 
 async function checkGoogleLogin() {
 
-  const { data } =
+  const { data, error } =
     await supabaseClient.auth.getSession();
+
+  if (error) {
+    console.error(error);
+    return;
+  }
 
   if (!data.session) {
     return;
   }
 
-  const user = data.session.user;
-
-  // Agar admin account Google se login kare
-  const { data: admin } =
-    await supabaseClient
-      .from("admins")
-      .select("user_id")
-      .eq("user_id", user.id)
-      .maybeSingle();
-
-  if (admin) {
-    window.location.href = "admin.html";
-    return;
-  }
-
-  // Normal customer
+  // Google login successful
   window.location.href = "index.html";
 }
 
