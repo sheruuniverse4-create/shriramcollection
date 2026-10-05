@@ -139,7 +139,21 @@
 
    
 
-      
+  async function checkCustomerLogin() {
+  const { data: { session } } = await sb.auth.getSession();
+
+  if (session) {
+    window.location.href = "index.html";
+  }
+}
+
+sb.auth.onAuthStateChange((event, session) => {
+  if (session) {
+    window.location.href = "index.html";
+  }
+});
+
+checkCustomerLogin();    
   </script>
 
 </body>
