@@ -99,7 +99,6 @@
   </div>
 
   <script>
-    alert("SCRIPT CHAL RAHA HAI");
     const SUPABASE_URL =
       "https://zyreggzaomelsfddbibs.supabase.co";
 
@@ -138,24 +137,9 @@
       .addEventListener("click", googleLogin);
 
 
-    async function checkLogin() {
+   
 
-      const { data, error } =
-        await sb.auth.getSession();
-
-      if (error) {
-        console.error(error);
-        return;
-      }
-
-      if (data.session) {
-
-        window.location.href = "index.html";
-
-      }
-    }
-
-    checkLogin();
+      
   </script>
 
 </body>
