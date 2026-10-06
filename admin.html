@@ -480,7 +480,7 @@ imageInput.onchange = async () => {
   }
 
   const { data: publicData } = sb.storage
-    .from("product_images")
+    .from("product_image")
     .getPublicUrl(fileName);
 
   const imageUrl = publicData.publicUrl;
