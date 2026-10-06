@@ -252,10 +252,17 @@ document.getElementById("orderForm").addEventListener("submit", async function(e
     alert("Please sabhi details bhariye.");
     return;
   }
+const { data: { session } } = await sb.auth.getSession();
 
+if (!session) {
+  alert("Please login first to order.");
+  window.location.href = "customer-login.html";
+  return;
+}
   const { error } = await sb
     .from("order")
     .insert({
+      user_id: session.user.id,
       product_id: product.id,
       name: customerName,
       mobile: mobile,
