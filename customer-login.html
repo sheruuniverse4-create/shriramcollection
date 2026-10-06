@@ -140,14 +140,17 @@
       .addEventListener("click", googleLogin);
 
 
-    sb.auth.onAuthStateChange((event, session) => {
+   const isOAuthCallback =
+  window.location.hash.includes("access_token") ||
+  window.location.search.includes("code=");
 
-      if (event === "SIGNED_IN" && session) {
-        window.location.href = "index.html";
-      }
-
-    });
-
+if (isOAuthCallback) {
+  sb.auth.getSession().then(({ data: { session } }) => {
+    if (session) {
+      window.location.href = "index.html";
+    }
+  });
+}
   </script>
 
 </body>
