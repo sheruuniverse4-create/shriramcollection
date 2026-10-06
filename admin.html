@@ -432,7 +432,51 @@ async function deleteProduct(id) {
 
   await loadProducts();
 }
+async function editProduct(id) {
+  const product = products.find(p => p.id === id);
 
+  if (!product) {
+    alert("Product nahi mila.");
+    return;
+  }
+
+  const name = prompt("Product name:", product.name || "");
+  if (name === null) return;
+
+  const price = prompt("Product price:", product.price || "");
+  if (price === null) return;
+
+  const category = prompt(
+    "Category (Men / Women / Kids / New Arrivals):",
+    product.category || ""
+  );
+  if (category === null) return;
+
+  const imageUrl = prompt(
+    "Image URL:",
+    product.image_url || ""
+  );
+  if (imageUrl === null) return;
+
+  const { error } = await sb
+    .from("products")
+    .update({
+      name: name.trim(),
+      price: Number(price),
+      category: category.trim(),
+      image_url: imageUrl.trim()
+    })
+    .eq("id", id);
+
+  if (error) {
+    alert("Product update nahi hua: " + error.message);
+    console.error(error);
+    return;
+  }
+
+  alert("Product successfully update ho gaya.");
+  await loadProducts();
+}
 function displayProducts() {
   const list = document.getElementById("productList");
   const empty = document.getElementById("emptyMessage");
