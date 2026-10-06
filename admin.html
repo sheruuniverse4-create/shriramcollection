@@ -468,7 +468,7 @@ imageInput.onchange = async () => {
     Date.now() + "_" + file.name.replace(/\s+/g, "_");
 
   const { error: uploadError } = await sb.storage
-    .from("product-images")
+    .from("product.image")
     .upload(fileName, file, {
       upsert: true
     });
