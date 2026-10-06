@@ -196,7 +196,7 @@
           <option value="Kids">Kids</option>
           <option value="New Arrivals">New Arrivals</option>
         </select>
-        <input id="productImage" placeholder="Product image URL">
+        <input id="productImage" type="file" accept="image/*">
 
         <button class="add-btn full" onclick="addProduct()">
           + Add Product
@@ -365,8 +365,11 @@ async function addProduct() {
   const name = document.getElementById("productName").value.trim();
   const price = document.getElementById("productPrice").value;
   const category = document.getElementById("productCategory").value;
-  const image = document.getElementById("productImage").value.trim();
-
+ const imageFile = document.getElementById("productImage").files[0];
+  if (!imageFile) {
+  alert("Product image select karna zaroori hai.");
+  return;
+}
   if (!name || !price) {
     alert("Product name aur price bharna zaroori hai.");
     return;
