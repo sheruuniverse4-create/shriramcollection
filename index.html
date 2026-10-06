@@ -370,7 +370,49 @@ list.appendChild(card);
 
 }
 
+// tumhara existing code
 
+function updateUserUI(session) {
+  const userInfo = document.getElementById("userInfo");
+  const loginLink = document.getElementById("loginLink");
+  const logoutBtn = document.getElementById("logoutBtn");
+
+  if (session && session.user) {
+    const user = session.user;
+
+    const name =
+      user.user_metadata?.full_name ||
+      user.user_metadata?.name ||
+      user.email?.split("@")[0] ||
+      "Customer";
+
+    userInfo.textContent = "Hi, " + name;
+    loginLink.style.display = "none";
+    logoutBtn.style.display = "inline-block";
+  } else {
+    userInfo.textContent = "";
+    loginLink.style.display = "inline";
+    logoutBtn.style.display = "none";
+  }
+}
+
+async function checkCustomerLogin() {
+  const { data: { session } } = await sb.auth.getSession();
+  updateUserUI(session);
+}
+
+document.getElementById("logoutBtn").addEventListener("click", async () => {
+  await sb.auth.signOut();
+  updateUserUI(null);
+});
+
+sb.auth.onAuthStateChange((event, session) => {
+  updateUserUI(session);
+});
+
+checkCustomerLogin();
+
+window.addEventListener("load",loadPublicProducts);
 window.addEventListener("load",loadPublicProducts);
 
 </script>
