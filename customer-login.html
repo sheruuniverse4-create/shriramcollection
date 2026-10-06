@@ -99,6 +99,7 @@
   </div>
 
   <script>
+
     const SUPABASE_URL =
       "https://zyreggzaomelsfddbibs.supabase.co";
 
@@ -110,43 +111,57 @@
       SUPABASE_ANON_KEY
     );
 
+
     async function googleLogin() {
 
-      document.getElementById("message").textContent =
-        "Opening Google login...";
+      const message = document.getElementById("message");
+
+      message.style.color = "#555";
+      message.textContent = "Opening Google login...";
 
       const { error } = await sb.auth.signInWithOAuth({
+
         provider: "google",
+
         options: {
           redirectTo:
             window.location.origin +
             "/shriramcollection/customer-login.html"
         }
+
       });
 
+
       if (error) {
+
         console.error(error);
 
-        document.getElementById("message").textContent =
+        message.style.color = "#c00";
+
+        message.textContent =
           "Google login failed. Please try again.";
+
       }
+
     }
+
 
     document
       .getElementById("googleLoginBtn")
       .addEventListener("click", googleLogin);
 
 
-    // IMPORTANT:
-    // Page load par existing session ki wajah se
-    // homepage par automatically redirect nahi karenge.
+    /*
+      Google login ke baad hi homepage par redirect hoga.
+      Existing session hone par page automatically redirect nahi karega.
+    */
 
     sb.auth.onAuthStateChange((event, session) => {
 
-      // Google login successfully complete hone ke baad
-      // SIGNED_IN event aayega.
       if (event === "SIGNED_IN" && session) {
+
         window.location.href = "index.html";
+
       }
 
     });
