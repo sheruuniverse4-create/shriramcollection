@@ -4,9 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Shri Ram Collection - Admin Panel</title>
-
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
   <style>
     * {
       box-sizing: border-box;
@@ -88,8 +86,7 @@
       gap: 15px;
     }
 
-    input,
-    select {
+    input, select {
       width: 100%;
       padding: 12px;
       border: 1px solid #ddd;
@@ -114,13 +111,6 @@
       color: white;
     }
 
-    .edit-btn {
-      background: #f59e0b;
-      color: white;
-      padding: 8px 12px;
-      margin-right: 5px;
-    }
-
     .delete-btn {
       background: #dc2626;
       color: white;
@@ -137,12 +127,10 @@
       margin-top: 15px;
     }
 
-    th,
-    td {
+    th, td {
       text-align: left;
       padding: 12px;
       border-bottom: 1px solid #eee;
-      vertical-align: middle;
     }
 
     th {
@@ -152,17 +140,6 @@
     .empty {
       color: #777;
       padding: 20px 0;
-    }
-
-    .product-image {
-      width: 60px;
-      height: 60px;
-      object-fit: cover;
-      border-radius: 8px;
-    }
-
-    .order-status {
-      min-width: 150px;
     }
 
     @media(max-width:700px) {
@@ -177,11 +154,6 @@
       table {
         font-size: 13px;
       }
-
-      .header {
-        flex-wrap: wrap;
-        gap: 10px;
-      }
     }
   </style>
 </head>
@@ -195,10 +167,7 @@
 
   <div class="container">
 
-    <!-- STATS -->
-
     <div class="stats">
-
       <div class="card">
         <h3>Total Products</h3>
         <div class="number" id="totalProducts">0</div>
@@ -213,936 +182,443 @@
         <h3>Women Products</h3>
         <div class="number" id="womenProducts">0</div>
       </div>
-
     </div>
 
-
-    <!-- PRODUCTS PANEL -->
-
     <div class="panel">
-
       <h2>Add New Product</h2>
 
       <div class="form">
-
-        <input
-          id="productName"
-          placeholder="Product name"
-        >
-
-        <input
-          id="productPrice"
-          type="number"
-          placeholder="Price"
-        >
-
+        <input id="productName" placeholder="Product name">
+        <input id="productPrice" type="number" placeholder="Price">
         <select id="productCategory">
           <option value="Men">Men</option>
           <option value="Women">Women</option>
           <option value="Kids">Kids</option>
           <option value="New Arrivals">New Arrivals</option>
         </select>
+        <input id="productImage" type="file" accept="image/*">
 
-        <input
-          id="productImage"
-          type="file"
-          accept="image/*"
-        >
-
-        <button
-          class="add-btn full"
-          onclick="addProduct()"
-        >
+        <button class="add-btn full" onclick="addProduct()">
           + Add Product
         </button>
-
       </div>
 
-
-      <!-- PRODUCTS LIST -->
-
       <div class="products">
-
         <h2>Products</h2>
 
-        <div style="overflow-x:auto;">
-
-          <table>
-
-            <thead>
-
-              <tr>
-                <th>Image</th>
-                <th>Name</th>
-                <th>Price</th>
-                <th>Category</th>
-                <th>Action</th>
-              </tr>
-
-            </thead>
-
-            <tbody id="productList"></tbody>
-
-          </table>
-
-        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Price</th>
+              <th>Category</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="productList"></tbody>
+        </table>
 
         <div id="emptyMessage" class="empty">
           No products added yet.
         </div>
-
       </div>
 
     </div>
 
   </div>
 
+  <script>
+    const SUPABASE_URL = "https://zyreggzaomelsfddbibs.supabase.co";
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp5cmVnZ3phb21lbHNmZGRiaWJzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTEwOTY2NDMsImV4cCI6MjEwNjY3MjY0M30.11nIKv060IIgvxQWScL1NjMhrmXQF50jRCkMIDCsGmg";
 
-  <!-- ORDERS -->
+   const sb = window.supabase.createClient(
+  SUPABASE_URL,
+  SUPABASE_ANON_KEY
+);
 
-  <div
-    class="panel"
-    style="max-width:1100px;margin:30px auto;"
-  >
+let products = [];
 
-    <h2>Orders</h2>
+async function checkAdminAccess() {
+  const { data, error } = await sb.auth.getSession();
 
-    <div style="overflow-x:auto;">
+  if (error || !data.session) {
+    window.location.href = "login.html";
+    return false;
+  }
 
-      <table>
+  const { data: admin, error: adminError } = await sb
+    .from("admins")
+    .select("user_id")
+    .eq("user_id", data.session.user.id)
+    .maybeSingle();
 
-        <thead>
+  if (adminError || !admin) {
+    await sb.auth.signOut();
+    window.location.href = "login.html";
+    return false;
+  }
 
-          <tr>
-            <th>Customer Name</th>
-            <th>Mobile</th>
-            <th>Alternate Mobile</th>
-            <th>Address</th>
-            <th>Size</th>
-            <th>Quantity</th>
-            <th>Price</th>
-            <th>Order Date</th>
-            <th>Status</th>
-          </tr>
+  return true;
+}
 
-        </thead>
+async function loadProducts() {
+  const { data, error } = await sb
+    .from("products")
+    .select("*")
+    .eq("is_active", true)
+    .order("created_at", { ascending: false });
 
-        <tbody id="orderList"></tbody>
+  if (error) {
+    alert("Products load nahi hue: " + error.message);
+    console.error(error);
+    return;
+  }
 
-      </table>
+  products = data || [];
+  displayProducts();
+}
+let orders = [];
 
-    </div>
+async function loadOrders() {
+  const { data, error } = await sb
+    .from("order")
+    .select("*")
+    .order("created_at", { ascending: false });
 
-    <p
-      id="orderEmptyMessage"
-      style="text-align:center;margin-top:15px;"
-    >
-      No orders yet.
-    </p>
+  if (error) {
+    console.error("Orders load error:", error);
+    return;
+  }
 
+  orders = data || [];
+  displayOrders();
+}
+
+function displayOrders() {
+  const list = document.getElementById("orderList");
+  const empty = document.getElementById("orderEmptyMessage");
+
+  list.innerHTML = "";
+
+  if (orders.length === 0) {
+    empty.style.display = "block";
+    return;
+  }
+
+  empty.style.display = "none";
+
+  orders.forEach(order => {
+    const row = document.createElement("tr");
+
+    [
+      order.name,
+      order.mobile,
+      order.alternate_mobile,
+      order.address,
+      order.size,
+      order.quantity,
+      "₹" + (order.price || 0),
+      new Date(order.created_at).toLocaleString("en-IN")
+    ].forEach(value => {
+      const td = document.createElement("td");
+      td.textContent = value || "";
+      row.appendChild(td);
+    });
+const statusTd = document.createElement("td");
+
+const select = document.createElement("select");
+
+["Pending", "Confirmed", "Shipped", "Out for Delivery", "Delivered", "Cancelled"]
+.forEach(status => {
+  const option = document.createElement("option");
+  option.value = status;
+  option.textContent = status;
+
+  if ((order.status || "Pending") === status) {
+    option.selected = true;
+  }
+
+  select.appendChild(option);
+});
+
+select.onchange = async () => {
+  const { error } = await sb
+    .from("order")
+    .update({ status: select.value })
+    .eq("id", order.id);
+
+  if (error) {
+    alert("Status update nahi hua");
+    console.error(error);
+    return;
+  }
+
+  order.status = select.value;
+};
+
+statusTd.appendChild(select);
+row.appendChild(statusTd);
+    list.appendChild(row);
+  });
+}
+async function addProduct() {
+  const name = document.getElementById("productName").value.trim();
+  const price = document.getElementById("productPrice").value;
+  const category = document.getElementById("productCategory").value;
+ const imageFile = document.getElementById("productImage").files[0];
+  if (!imageFile) {
+  alert("Product image select karna zaroori hai.");
+  return;
+}
+  if (!name || !price) {
+    alert("Product name aur price bharna zaroori hai.");
+    return;
+  }
+const fileName = `${Date.now()}-${imageFile.name}`;
+
+const { error: uploadError } = await sb.storage
+  .from("product_image")
+  .upload(fileName, imageFile);
+
+if (uploadError) {
+  alert("Image upload nahi hui.");
+  console.error(uploadError);
+  return;
+}
+
+const { data: imageData } = sb.storage
+  .from("product_image")
+  .getPublicUrl(fileName);
+
+const image = imageData.publicUrl;
+  const { error } = await sb
+    .from("products")
+    .insert({
+      name: name,
+      price: Number(price),
+      category: category,
+      image_url: image,
+      is_active: true
+    });
+
+  if (error) {
+    alert("Product add nahi hua: " + error.message);
+    console.error(error);
+    return;
+  }
+
+  document.getElementById("productName").value = "";
+  document.getElementById("productPrice").value = "";
+  document.getElementById("productImage").value = "";
+
+  alert("Product added successfully.");
+  await loadProducts();
+}
+
+async function deleteProduct(id) {
+  if (!confirm("Kya aap is product ko delete karna chahte hain?")) {
+    return;
+  }
+
+  const { error } = await sb
+    .from("products")
+    .delete()
+    .eq("id", id);
+
+  if (error) {
+    alert("Delete nahi hua: " + error.message);
+    return;
+  }
+
+  await loadProducts();
+}
+async function editProduct(id) {
+  const product = products.find(p => p.id === id);
+
+  if (!product) {
+    alert("Product nahi mila.");
+    return;
+  }
+
+  const name = prompt("Product name:", product.name || "");
+  if (name === null) return;
+
+  const price = prompt("Product price:", product.price || "");
+  if (price === null) return;
+
+  const category = prompt(
+    "Category (Men / Women / Kids / New Arrivals):",
+    product.category || ""
+  );
+  if (category === null) return;
+
+const imageInput = document.createElement("input");
+imageInput.type = "file";
+imageInput.accept = "image/*";
+
+imageInput.onchange = async () => {
+  const file = imageInput.files[0];
+
+  if (!file) {
+    alert("Image select nahi hui.");
+    return;
+  }
+
+  const fileName =
+    Date.now() + "_" + file.name.replace(/\s+/g, "_");
+
+  const { error: uploadError } = await sb.storage
+    .from("product_image")
+    .upload(fileName, file, {
+      upsert: true
+    });
+
+  if (uploadError) {
+    alert("Image upload nahi hui: " + uploadError.message);
+    console.error(uploadError);
+    return;
+  }
+
+  const { data: publicData } = sb.storage
+    .from("product-images")
+    .getPublicUrl(fileName);
+
+  const imageUrl = publicData.publicUrl;
+
+  const { error } = await sb
+    .from("products")
+    .update({
+      name: name.trim(),
+      price: Number(price),
+      category: category.trim(),
+      image_url: imageUrl
+    })
+    .eq("id", id);
+
+  if (error) {
+    alert("Product update nahi hua: " + error.message);
+    console.error(error);
+    return;
+  }
+
+  alert("Product successfully update ho gaya.");
+  await loadProducts();
+};
+
+imageInput.click();
+return;
+
+  const { error } = await sb
+    .from("products")
+    .update({
+      name: name.trim(),
+      price: Number(price),
+      category: category.trim(),
+      image_url: imageUrl.trim()
+    })
+    .eq("id", id);
+
+  if (error) {
+    alert("Product update nahi hua: " + error.message);
+    console.error(error);
+    return;
+  }
+
+  alert("Product successfully update ho gaya.");
+  await loadProducts();
+}
+function displayProducts() {
+  const list = document.getElementById("productList");
+  const empty = document.getElementById("emptyMessage");
+
+  list.innerHTML = "";
+
+  empty.style.display =
+    products.length === 0 ? "block" : "none";
+
+  products.forEach(product => {
+    const row = document.createElement("tr");
+
+    row.innerHTML = `
+  <td>
+    ${
+      product.image_url
+        ? `<img src="${product.image_url}" width="60" height="60" style="object-fit:cover;border-radius:8px;">`
+        : "No Image"
+    }
+  </td>
+
+  <td>${product.name}</td>
+
+  <td>₹${product.price}</td>
+
+  <td>${product.category}</td>
+
+  <td>
+    <button
+      class="edit-btn"
+      onclick="editProduct(${product.id})">
+      Edit
+    </button>
+
+    <button
+      class="delete-btn"
+      onclick="deleteProduct(${product.id})">
+      Delete
+    </button>
+  </td>
+`;
+
+    list.appendChild(row);
+  });
+
+  document.getElementById("totalProducts").textContent =
+    products.length;
+
+  document.getElementById("menProducts").textContent =
+    products.filter(p => p.category === "Men").length;
+
+  document.getElementById("womenProducts").textContent =
+    products.filter(p => p.category === "Women").length;
+}
+
+window.addProduct = addProduct;
+window.deleteProduct = deleteProduct;
+
+window.addEventListener("load", async () => {
+  const isAdmin = await checkAdminAccess();
+
+  if (isAdmin) {
+    await loadProducts();
+    await loadOrders();
+  }
+});
+  </script>
+  <div class="panel" style="margin-top:30px;">
+  <h2>Orders</h2>
+
+  <div style="overflow-x:auto;">
+    <table>
+      <thead>
+        <tr>
+          <th>Customer Name</th>
+          <th>Mobile</th>
+          <th>Alternate Mobile</th>
+          <th>Address</th>
+          <th>Size</th>
+          <th>Quantity</th>
+          <th>Price</th>
+          <th>Order Date</th>
+        </tr>
+      </thead>
+
+      <tbody id="orderList"></tbody>
+    </table>
   </div>
 
-
-  <script>
-
-    const SUPABASE_URL =
-      "https://zyreggzaomelsfddbibs.supabase.co";
-
-
-    /*
-      IMPORTANT:
-
-      Yahan apni purani SUPABASE_ANON_KEY paste karo.
-
-      Main security ke liye aapki purani key dobara output nahi kar raha.
-    */
-
-    const SUPABASE_ANON_KEY =
-      "sb_publishable_gNzfXDlTuBD2K2Stiu4iyQ_c4n247pY";
-
-
-    const sb = window.supabase.createClient(
-      SUPABASE_URL,
-      SUPABASE_ANON_KEY
-    );
-
-
-    let products = [];
-    let orders = [];
-
-
-    // =========================
-    // ADMIN ACCESS
-    // =========================
-
-    async function checkAdminAccess() {
-
-      const { data, error } =
-        await sb.auth.getSession();
-
-      if (error || !data.session) {
-
-        window.location.href = "login.html";
-
-        return false;
-      }
-
-
-      const {
-        data: admin,
-        error: adminError
-      } = await sb
-        .from("admins")
-        .select("user_id")
-        .eq(
-          "user_id",
-          data.session.user.id
-        )
-        .maybeSingle();
-
-
-      if (adminError || !admin) {
-
-        await sb.auth.signOut();
-
-        window.location.href = "login.html";
-
-        return false;
-      }
-
-
-      return true;
-    }
-
-
-    // =========================
-    // LOAD PRODUCTS
-    // =========================
-
-    async function loadProducts() {
-
-      const {
-        data,
-        error
-      } = await sb
-        .from("products")
-        .select("*")
-        .eq("is_active", true)
-        .order(
-          "created_at",
-          {
-            ascending: false
-          }
-        );
-
-
-      if (error) {
-
-        alert(
-          "Products load nahi hue: " +
-          error.message
-        );
-
-        console.error(error);
-
-        return;
-      }
-
-
-      products = data || [];
-
-      displayProducts();
-    }
-
-
-    // =========================
-    // DISPLAY PRODUCTS
-    // =========================
-
-    function displayProducts() {
-
-      const list =
-        document.getElementById("productList");
-
-      const empty =
-        document.getElementById("emptyMessage");
-
-
-      list.innerHTML = "";
-
-
-      empty.style.display =
-        products.length === 0
-          ? "block"
-          : "none";
-
-
-      products.forEach(product => {
-
-        const row =
-          document.createElement("tr");
-
-
-        row.innerHTML = `
-
-          <td>
-
-            ${
-              product.image_url
-
-              ?
-
-              \`
-                <img
-                  src="\${product.image_url}"
-                  class="product-image"
-                  alt="Product"
-                >
-              \`
-
-              :
-
-              "No Image"
-            }
-
-          </td>
-
-
-          <td>
-            \${product.name || ""}
-          </td>
-
-
-          <td>
-            ₹\${product.price || 0}
-          </td>
-
-
-          <td>
-            \${product.category || ""}
-          </td>
-
-
-          <td>
-
-            <button
-              class="edit-btn"
-              onclick="editProduct(\${product.id})"
-            >
-              Edit
-            </button>
-
-
-            <button
-              class="delete-btn"
-              onclick="deleteProduct(\${product.id})"
-            >
-              Delete
-            </button>
-
-          </td>
-
-        `;
-
-
-        list.appendChild(row);
-
-      });
-
-
-      document.getElementById(
-        "totalProducts"
-      ).textContent = products.length;
-
-
-      document.getElementById(
-        "menProducts"
-      ).textContent =
-        products.filter(
-          p => p.category === "Men"
-        ).length;
-
-
-      document.getElementById(
-        "womenProducts"
-      ).textContent =
-        products.filter(
-          p => p.category === "Women"
-        ).length;
-
-    }
-
-
-    // =========================
-    // ADD PRODUCT
-    // =========================
-
-    async function addProduct() {
-
-      const name =
-        document
-          .getElementById("productName")
-          .value
-          .trim();
-
-
-      const price =
-        document
-          .getElementById("productPrice")
-          .value;
-
-
-      const category =
-        document
-          .getElementById("productCategory")
-          .value;
-
-
-      const imageFile =
-        document
-          .getElementById("productImage")
-          .files[0];
-
-
-      if (!imageFile) {
-
-        alert(
-          "Product image select karna zaroori hai."
-        );
-
-        return;
-      }
-
-
-      if (!name || !price) {
-
-        alert(
-          "Product name aur price bharna zaroori hai."
-        );
-
-        return;
-      }
-
-
-      const fileName =
-        `${Date.now()}-${imageFile.name}`;
-
-
-      // IMPORTANT: CORRECT BUCKET
-
-      const {
-        error: uploadError
-      } = await sb.storage
-        .from("product_image")
-        .upload(
-          fileName,
-          imageFile
-        );
-
-
-      if (uploadError) {
-
-        alert(
-          "Image upload nahi hui: " +
-          uploadError.message
-        );
-
-        console.error(uploadError);
-
-        return;
-      }
-
-
-      const {
-        data: imageData
-      } = sb.storage
-        .from("product_image")
-        .getPublicUrl(
-          fileName
-        );
-
-
-      const image =
-        imageData.publicUrl;
-
-
-      const {
-        error
-      } = await sb
-        .from("products")
-        .insert({
-
-          name: name,
-
-          price: Number(price),
-
-          category: category,
-
-          image_url: image,
-
-          is_active: true
-
-        });
-
-
-      if (error) {
-
-        alert(
-          "Product add nahi hua: " +
-          error.message
-        );
-
-        console.error(error);
-
-        return;
-      }
-
-
-      document.getElementById(
-        "productName"
-      ).value = "";
-
-
-      document.getElementById(
-        "productPrice"
-      ).value = "";
-
-
-      document.getElementById(
-        "productImage"
-      ).value = "";
-
-
-      alert(
-        "Product added successfully."
-      );
-
-
-      await loadProducts();
-
-    }
-
-
-    // =========================
-    // EDIT PRODUCT
-    // =========================
-
-    async function editProduct(id) {
-
-      const product =
-        products.find(
-          p => p.id === id
-        );
-
-
-      if (!product) {
-
-        alert(
-          "Product nahi mila."
-        );
-
-        return;
-      }
-
-
-      const name =
-        prompt(
-          "Product name:",
-          product.name || ""
-        );
-
-
-      if (name === null) {
-        return;
-      }
-
-
-      const price =
-        prompt(
-          "Product price:",
-          product.price || ""
-        );
-
-
-      if (price === null) {
-        return;
-      }
-
-
-      const category =
-        prompt(
-          "Category (Men / Women / Kids / New Arrivals):",
-          product.category || ""
-        );
-
-
-      if (category === null) {
-        return;
-      }
-
-
-      // IMAGE FILE PICKER
-
-      const imageInput =
-        document.createElement("input");
-
-
-      imageInput.type = "file";
-
-      imageInput.accept = "image/*";
-
-
-      imageInput.onchange =
-        async () => {
-
-          const file =
-            imageInput.files[0];
-
-
-          if (!file) {
-
-            alert(
-              "Image select nahi hui."
-            );
-
-            return;
-          }
-
-
-          const fileName =
-            Date.now() +
-            "_" +
-            file.name.replace(
-              /\s+/g,
-              "_"
-            );
-
-
-          // CORRECT BUCKET NAME
-
-          const {
-            error: uploadError
-          } = await sb.storage
-            .from("product_image")
-            .upload(
-              fileName,
-              file,
-              {
-                upsert: true
-              }
-            );
-
-
-          if (uploadError) {
-
-            alert(
-              "Image upload nahi hui: " +
-              uploadError.message
-            );
-
-            console.error(
-              uploadError
-            );
-
-            return;
-          }
-
-
-          // CORRECT BUCKET NAME HERE TOO
-
-          const {
-            data: publicData
-          } = sb.storage
-            .from("product_image")
-            .getPublicUrl(
-              fileName
-            );
-
-
-          const imageUrl =
-            publicData.publicUrl;
-
-
-          const {
-            error
-          } = await sb
-            .from("products")
-            .update({
-
-              name:
-                name.trim(),
-
-              price:
-                Number(price),
-
-              category:
-                category.trim(),
-
-              image_url:
-                imageUrl
-
-            })
-            .eq(
-              "id",
-              id
-            );
-
-
-          if (error) {
-
-            alert(
-              "Product update nahi hua: " +
-              error.message
-            );
-
-            console.error(error);
-
-            return;
-          }
-
-
-          alert(
-            "Product successfully update ho gaya."
-          );
-
-
-          await loadProducts();
-
-        };
-
-
-      imageInput.click();
-
-    }
-
-
-    // =========================
-    // DELETE PRODUCT
-    // =========================
-
-    async function deleteProduct(id) {
-
-      if (
-        !confirm(
-          "Kya aap is product ko delete karna chahte hain?"
-        )
-      ) {
-
-        return;
-      }
-
-
-      const {
-        error
-      } = await sb
-        .from("products")
-        .delete()
-        .eq(
-          "id",
-          id
-        );
-
-
-      if (error) {
-
-        alert(
-          "Delete nahi hua: " +
-          error.message
-        );
-
-        console.error(error);
-
-        return;
-      }
-
-
-      await loadProducts();
-
-    }
-
-
-    // =========================
-    // LOAD ORDERS
-    // =========================
-
-    async function loadOrders() {
-
-      const {
-        data,
-        error
-      } = await sb
-        .from("order")
-        .select("*")
-        .order(
-          "created_at",
-          {
-            ascending: false
-          }
-        );
-
-
-      if (error) {
-
-        console.error(
-          "Orders load error:",
-          error
-        );
-
-        return;
-      }
-
-
-      orders = data || [];
-
-      displayOrders();
-
-    }
-
-
-    // =========================
-    // DISPLAY ORDERS
-    // =========================
-
-    function displayOrders() {
-
-      const list =
-        document.getElementById(
-          "orderList"
-        );
-
-
-      const empty =
-        document.getElementById(
-          "orderEmptyMessage"
-        );
-
-
-      list.innerHTML = "";
-
-
-      if (orders.length === 0) {
-
-        empty.style.display =
-          "block";
-
-        return;
-      }
-
-
-      empty.style.display =
-        "none";
-
-
-      orders.forEach(order => {
-
-        const row =
-          document.createElement("tr");
-
-
-        [
-
-          order.name,
-
-          order.mobile,
-
-          order.alternate_mobile,
-
-          order.address,
-
-          order.size,
-
-          order.quantity,
-
-          "₹" +
-            (order.price || 0),
-
-          new Date(
-            order.created_at
-          ).toLocaleString(
-            "en-IN"
-          )
-
-        ].forEach(value => {
-
-          const td =
-            document.createElement(
-              "td"
-            );
-
-
-          td.textContent =
-            value || "";
-
-
-          row.appendChild(td);
-
-        });
-
-
-        // STATUS
-
-        const statusTd =
-          document.createElement(
-            "td"
-          );
-
-
-        const select =
-          document.createElement(
-            "select"
-          );
-
-
-        select.className =
-          "order-status";
-
-
-        [
-
-          "Pending",
-
-          "Confirmed",
-
-          "Shipped",
-
-          "Out for Delivery",
-
-          "Delivered",
-
-          "Cancelled"
-
-        ].forEach(status => {
-
-          const option =
-            document.createElement(
-              "option"
-            );
-
-
-          option.value =
-            status;
-
-
-          option.textContent =
-            status;
-
-
-          if (
-            (order.status || "Pending")
-            === status
-          ) {
-
-            option.selected =
-              true;
-          }
-
-
-          select.appendChild(
-            option
-          );
-
-        });
-
-
-        select.onchange =
-          async () => {
+  <p id="orderEmptyMessage" style="text-align:center;">
+    No orders yet.
+  </p>
+</div>
+</body>
+</html> ya code pura
