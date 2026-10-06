@@ -452,11 +452,61 @@ async function editProduct(id) {
   );
   if (category === null) return;
 
-  const imageUrl = prompt(
-    "Image URL:",
-    product.image_url || ""
-  );
-  if (imageUrl === null) return;
+const imageInput = document.createElement("input");
+imageInput.type = "file";
+imageInput.accept = "image/*";
+
+imageInput.onchange = async () => {
+  const file = imageInput.files[0];
+
+  if (!file) {
+    alert("Image select nahi hui.");
+    return;
+  }
+
+  const fileName =
+    Date.now() + "_" + file.name.replace(/\s+/g, "_");
+
+  const { error: uploadError } = await sb.storage
+    .from("product-images")
+    .upload(fileName, file, {
+      upsert: true
+    });
+
+  if (uploadError) {
+    alert("Image upload nahi hui: " + uploadError.message);
+    console.error(uploadError);
+    return;
+  }
+
+  const { data: publicData } = sb.storage
+    .from("product-images")
+    .getPublicUrl(fileName);
+
+  const imageUrl = publicData.publicUrl;
+
+  const { error } = await sb
+    .from("products")
+    .update({
+      name: name.trim(),
+      price: Number(price),
+      category: category.trim(),
+      image_url: imageUrl
+    })
+    .eq("id", id);
+
+  if (error) {
+    alert("Product update nahi hua: " + error.message);
+    console.error(error);
+    return;
+  }
+
+  alert("Product successfully update ho gaya.");
+  await loadProducts();
+};
+
+imageInput.click();
+return;
 
   const { error } = await sb
     .from("products")
