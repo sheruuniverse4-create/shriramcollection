@@ -356,9 +356,10 @@ ${imageHTML}
 ${product.category}
 </div>
 <a
-    class="whatsapp-btn"
-    href="order.html?id=${product.id}">
-    Buy Now
+  class="whatsapp-btn"
+  href="#"
+  onclick="handleBuyNow(${product.id}); return false;">
+  Buy Now
 </a>
 </div>
 `;
