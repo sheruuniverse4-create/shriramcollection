@@ -374,7 +374,23 @@ async function addProduct() {
     alert("Product name aur price bharna zaroori hai.");
     return;
   }
+const fileName = `${Date.now()}-${imageFile.name}`;
 
+const { error: uploadError } = await sb.storage
+  .from("product_image")
+  .upload(fileName, imageFile);
+
+if (uploadError) {
+  alert("Image upload nahi hui.");
+  console.error(uploadError);
+  return;
+}
+
+const { data: imageData } = sb.storage
+  .from("product_image")
+  .getPublicUrl(fileName);
+
+const image = imageData.publicUrl;
   const { error } = await sb
     .from("products")
     .insert({
