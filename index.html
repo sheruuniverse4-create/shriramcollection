@@ -372,7 +372,17 @@ list.appendChild(card);
 }
 
 // tumhara existing code
+async function handleBuyNow(productId) {
+  const { data: { session } } = await sb.auth.getSession();
 
+  if (!session) {
+    alert("Please login first to order.");
+    window.location.href = "customer-login.html";
+    return;
+  }
+
+  window.location.href = "order.html?id=" + productId;
+}
 function updateUserUI(session) {
   const userInfo = document.getElementById("userInfo");
   const loginLink = document.getElementById("loginLink");
