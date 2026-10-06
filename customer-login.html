@@ -1,4 +1,4 @@
-<!DOCTYPE html> 
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -86,7 +86,7 @@
       Customer Login
     </div>
 
-    <button class="google-btn" id="googleLoginBtn" >
+    <button class="google-btn" id="googleLoginBtn">
       Continue with Google
     </button>
 
@@ -103,7 +103,7 @@
       "https://zyreggzaomelsfddbibs.supabase.co";
 
     const SUPABASE_ANON_KEY =
-      "sb_publishable_gNzfXDlTuBD2K2Stiu4iyQ_c4n247pY";
+      "APNI_EXISTING_PUBLISHABLE_KEY_YAHAN_RAKHO";
 
     const sb = window.supabase.createClient(
       SUPABASE_URL,
@@ -137,23 +137,20 @@
       .addEventListener("click", googleLogin);
 
 
-   
+    // IMPORTANT:
+    // Page load par existing session ki wajah se
+    // homepage par automatically redirect nahi karenge.
 
-  async function checkCustomerLogin() {
-  const { data: { session } } = await sb.auth.getSession();
+    sb.auth.onAuthStateChange((event, session) => {
 
-  if (session) {
-    window.location.href = "index.html";
-  }
-}
+      // Google login successfully complete hone ke baad
+      // SIGNED_IN event aayega.
+      if (event === "SIGNED_IN" && session) {
+        window.location.href = "index.html";
+      }
 
-sb.auth.onAuthStateChange((event, session) => {
-  if (session) {
-    window.location.href = "index.html";
-  }
-});
+    });
 
-checkCustomerLogin();    
   </script>
 
 </body>
