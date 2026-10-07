@@ -335,7 +335,7 @@ async function displayOrders() {
 
   empty.style.display = "none";
 
-  orders.forEach(async order => {
+for (const order of orders) {
     const row = document.createElement("tr");
 
     const productTd = document.createElement("td");
@@ -439,7 +439,7 @@ if (order.payment_screenshot_url) {
 row.appendChild(screenshotTd);
 row.appendChild(statusTd);
     list.appendChild(row);
-  });
+  }
 }
 async function addProduct() {
   const name = document.getElementById("productName").value.trim();
