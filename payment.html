@@ -1,1 +1,519 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+  <title>Payment - Shri Ram Collection</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f7f7f7;
+      color: #222;
+    }
+
+    .container {
+      max-width: 650px;
+      margin: 25px auto;
+      padding: 18px;
+    }
+
+    .box {
+      background: white;
+      border-radius: 15px;
+      padding: 20px;
+      margin-bottom: 18px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+    }
+
+    h1 {
+      text-align: center;
+      margin-top: 0;
+    }
+
+    h2 {
+      font-size: 20px;
+    }
+
+    .warning {
+      background: #fff0f0;
+      border: 2px solid #d60000;
+      color: #a00000;
+      border-radius: 12px;
+      padding: 15px;
+      font-weight: bold;
+      line-height: 1.5;
+    }
+
+    .step {
+      margin-bottom: 16px;
+      line-height: 1.6;
+    }
+
+    .amount {
+      background: #fff8df;
+      border: 1px solid #e0bd45;
+      border-radius: 12px;
+      padding: 15px;
+      font-size: 18px;
+    }
+
+    .qr {
+      text-align: center;
+    }
+
+    .qr img {
+      width: 100%;
+      max-width: 350px;
+      border-radius: 10px;
+    }
+
+    .timer {
+      text-align: center;
+      font-size: 30px;
+      font-weight: bold;
+      color: #d00000;
+      margin-top: 15px;
+    }
+
+    .upload-box {
+      border: 2px dashed #999;
+      padding: 18px;
+      border-radius: 12px;
+      text-align: center;
+    }
+
+    input[type="file"] {
+      width: 100%;
+      margin-top: 10px;
+    }
+
+    .preview {
+      display: none;
+      margin-top: 15px;
+      text-align: center;
+    }
+
+    .preview img {
+      max-width: 250px;
+      max-height: 250px;
+      border-radius: 10px;
+    }
+
+    .btn {
+      display: block;
+      width: 100%;
+      padding: 14px;
+      border: none;
+      border-radius: 10px;
+      font-size: 17px;
+      font-weight: bold;
+      cursor: pointer;
+      margin-top: 12px;
+    }
+
+    .whatsapp {
+      background: #25D366;
+      color: white;
+    }
+
+    .payment-done {
+      background: #198754;
+      color: white;
+    }
+
+    .payment-done:disabled {
+      background: #aaa;
+      cursor: not-allowed;
+    }
+
+    .success {
+      display: none;
+      background: #e9fff0;
+      border: 2px solid #198754;
+      color: #146c43;
+      border-radius: 12px;
+      padding: 20px;
+      text-align: center;
+      line-height: 1.6;
+    }
+
+    .last-warning {
+      background: #fff3cd;
+      border: 2px solid #e0a800;
+      color: #664d03;
+      border-radius: 12px;
+      padding: 18px;
+      line-height: 1.6;
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="container">
+
+  <h1>Shri Ram Collection</h1>
+
+  <!-- TOP WARNING -->
+  <div class="box warning">
+    ⚠️ IMPORTANT NOTICE<br><br>
+    Step 4: Please complete your payment within 5 minutes.
+    Otherwise, your payment session may be cancelled.
+  </div>
+
+
+  <!-- STEPS -->
+  <div class="box">
+
+    <h2>Payment Instructions</h2>
+
+    <div class="step">
+      <b>Step 1:</b>
+      Scan the QR scanner and make the payment according to
+      your order amount <b>+ ₹50 shipping charges</b>.
+    </div>
+
+    <div class="step">
+      <b>Step 2:</b>
+      After making the payment, take a screenshot of the payment
+      confirmation and attach the screenshot below.
+    </div>
+
+    <div class="step">
+      <b>Step 3:</b>
+      Click the <b>“WhatsApp”</b> button below.
+      When you click the button, your message will be sent to
+      our WhatsApp inbox.
+
+      <br><br>
+
+      If you don't receive a reply within 10 minutes,
+      please call us. Otherwise, your order may be cancelled.
+    </div>
+
+    <div class="step">
+      <b>Step 4:</b>
+      After sending the WhatsApp message, attach your payment
+      screenshot and click <b>“Payment Done”</b>.
+      Your order will then be sent to the admin for confirmation.
+    </div>
+
+  </div>
+
+
+  <!-- AMOUNT -->
+  <div class="box amount">
+
+    <b>Order Amount:</b>
+    ₹<span id="orderAmount">0</span>
+
+    <br><br>
+
+    <b>Shipping Charges:</b>
+    ₹50
+
+    <hr>
+
+    <b>Total Payment:</b>
+    ₹<span id="totalAmount">50</span>
+
+  </div>
+
+
+  <!-- QR -->
+  <div class="box qr">
+
+    <h2>Scan & Pay</h2>
+
+    <img
+      src="payment-qr.jpeg"
+      alt="Payment QR Code"
+    >
+
+  </div>
+
+
+  <!-- TIMER -->
+  <div class="box">
+
+    <h2 style="text-align:center;">
+      Payment Time Remaining
+    </h2>
+
+    <div class="timer" id="timer">
+      05:00
+    </div>
+
+  </div>
+
+
+  <!-- SCREENSHOT -->
+  <div class="box">
+
+    <h2>Payment Screenshot</h2>
+
+    <div class="upload-box">
+
+      <b>
+        Attach your payment screenshot
+      </b>
+
+      <input
+        type="file"
+        id="paymentScreenshot"
+        accept="image/*"
+      >
+
+      <div class="preview" id="preview">
+        <p>Screenshot attached:</p>
+        <img id="previewImage" alt="Payment screenshot">
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <!-- WHATSAPP -->
+  <div class="box">
+
+    <button
+      class="btn whatsapp"
+      id="whatsappBtn"
+    >
+      WhatsApp
+    </button>
+
+  </div>
+
+
+  <!-- PAYMENT DONE -->
+  <div class="box">
+
+    <button
+      class="btn payment-done"
+      id="paymentDoneBtn"
+      disabled
+    >
+      Payment Done
+    </button>
+
+  </div>
+
+
+  <!-- SUCCESS -->
+  <div class="box success" id="successBox">
+
+    <h2>🎉 Congratulations!</h2>
+
+    <p>
+      Your order has been received successfully.
+    </p>
+
+    <p>
+      Your order has been sent to the admin for confirmation.
+    </p>
+
+    <p>
+      Once the admin accepts your order,
+      your order status will change from
+      <b>Pending</b> to <b>Confirmed</b>.
+    </p>
+
+  </div>
+
+
+  <!-- LAST WARNING -->
+  <div class="box last-warning">
+
+    <b>⚠️ Important Rules</b>
+
+    <br><br>
+
+    Please follow all payment instructions carefully.
+
+    <br><br>
+
+    Do not send a fake, edited or fraudulent payment screenshot.
+
+    <br><br>
+
+    If an invalid or fraudulent payment screenshot is submitted,
+    the order may not be accepted even if the customer claims
+    that payment was made.
+
+    <br><br>
+
+    Please make the payment correctly and submit the genuine
+    payment confirmation screenshot.
+
+  </div>
+
+</div>
+
+
+<script>
+
+  /* ---------------------------
+     ORDER AMOUNT
+  --------------------------- */
+
+  const params = new URLSearchParams(window.location.search);
+
+  const amount = Number(params.get("amount")) || 0;
+
+  document.getElementById("orderAmount").textContent = amount;
+
+  const total = amount + 50;
+
+  document.getElementById("totalAmount").textContent = total;
+
+
+  /* ---------------------------
+     5 MINUTE TIMER
+  --------------------------- */
+
+  let timeLeft = 5 * 60;
+
+  const timer = document.getElementById("timer");
+  const paymentDoneBtn = document.getElementById("paymentDoneBtn");
+
+  const countdown = setInterval(() => {
+
+    const minutes = Math.floor(timeLeft / 60);
+    const seconds = timeLeft % 60;
+
+    timer.textContent =
+      String(minutes).padStart(2, "0") +
+      ":" +
+      String(seconds).padStart(2, "0");
+
+    if (timeLeft <= 0) {
+
+      clearInterval(countdown);
+
+      timer.textContent = "00:00";
+
+      paymentDoneBtn.disabled = true;
+
+      alert("Payment time has expired. Please start the payment process again.");
+
+      return;
+    }
+
+    timeLeft--;
+
+  }, 1000);
+
+
+  /* ---------------------------
+     SCREENSHOT UPLOAD
+  --------------------------- */
+
+  const screenshotInput =
+    document.getElementById("paymentScreenshot");
+
+  const preview =
+    document.getElementById("preview");
+
+  const previewImage =
+    document.getElementById("previewImage");
+
+
+  screenshotInput.addEventListener("change", function() {
+
+    const file = this.files[0];
+
+    if (!file) {
+
+      paymentDoneBtn.disabled = true;
+
+      preview.style.display = "none";
+
+      return;
+    }
+
+    if (!file.type.startsWith("image/")) {
+
+      alert("Please attach a valid image screenshot.");
+
+      this.value = "";
+
+      paymentDoneBtn.disabled = true;
+
+      return;
+    }
+
+    const reader = new FileReader();
+
+    reader.onload = function(event) {
+
+      previewImage.src = event.target.result;
+
+      preview.style.display = "block";
+
+      paymentDoneBtn.disabled = false;
+
+    };
+
+    reader.readAsDataURL(file);
+
+  });
+
+
+  /* ---------------------------
+     WHATSAPP
+  --------------------------- */
+
+  document.getElementById("whatsappBtn")
+    .addEventListener("click", function() {
+
+      const message =
+        "Hello Shri Ram Collection, I have completed my payment. Order amount: ₹"
+        + total
+        + ". I am sending my payment confirmation.";
+
+      const whatsappURL =
+        "https://wa.me/919971706967?text="
+        + encodeURIComponent(message);
+
+      window.open(whatsappURL, "_blank");
+
+    });
+
+
+  /* ---------------------------
+     PAYMENT DONE
+  --------------------------- */
+
+  paymentDoneBtn.addEventListener("click", function() {
+
+    if (!screenshotInput.files.length) {
+
+      alert("Please attach your payment screenshot first.");
+
+      return;
+    }
+
+    document.getElementById("successBox").style.display = "block";
+
+    paymentDoneBtn.disabled = true;
+
+    window.scrollTo({
+      top: document.body.scrollHeight,
+      behavior: "smooth"
+    });
+
+  });
+
+</script>
+
+</body>
+</html>
