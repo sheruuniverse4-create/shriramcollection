@@ -279,12 +279,6 @@ sessionStorage.setItem(
 const totalAmount =
   (Number(product.price) * Number(quantity)) + 50;
 
-const { data: { session } } = await sb.auth.getSession();
-
-if (!session) {
-  alert("Please login first.");
-  return;
-}
 
 const { data: newOrder, error: orderError } = await sb
   .from("order")
