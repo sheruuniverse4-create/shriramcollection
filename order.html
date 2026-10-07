@@ -279,9 +279,41 @@ sessionStorage.setItem(
 const totalAmount =
   (Number(product.price) * Number(quantity)) + 50;
 
+const { data: { session } } = await sb.auth.getSession();
+
+if (!session) {
+  alert("Please login first.");
+  return;
+}
+
+const { data: newOrder, error: orderError } = await sb
+  .from("order")
+  .insert({
+    user_id: session.user.id,
+    product_id: product.id,
+    name: customerName,
+    mobile: mobile,
+    alternate_mobile: alternateMobile,
+    address: address,
+    size: size,
+    quantity: quantity,
+    price: totalAmount,
+    status: "Pending"
+  })
+  .select("id")
+  .single();
+
+if (orderError) {
+  console.error(orderError);
+  alert("Order create nahi hua.");
+  return;
+}
+
 window.location.href =
-  "payment.html?amount=" + encodeURIComponent(totalAmount);
-});
+  "payment.html?amount=" +
+  encodeURIComponent(totalAmount) +
+  "&order_id=" +
+  encodeURIComponent(newOrder.id);
 
 loadProduct();
 
