@@ -259,35 +259,28 @@ if (!session) {
   window.location.href = "customer-login.html";
   return;
 }
-  const { error } = await sb
-    .from("order")
-    .insert({
-      user_id: session.user.id,
-      product_id: product.id,
-      name: customerName,
-      mobile: mobile,
-      alternate_mobile: alternateMobile,
-      address: address,
-      size: size,
-      quantity: quantity,
-      price: product.price,
-      status:"Pending"
-    });
+ const pendingOrder = {
+  user_id: session.user.id,
+  product_id: product.id,
+  name: customerName,
+  mobile: mobile,
+  alternate_mobile: alternateMobile,
+  address: address,
+  size: size,
+  quantity: quantity,
+  price: product.price
+};
 
-  if (error) {
-    console.error(error);
+sessionStorage.setItem(
+  "pendingOrder",
+  JSON.stringify(pendingOrder)
+);
 
-    document.getElementById("message").textContent =
-      "Order save nahi hua. Please try again.";
+const totalAmount =
+  (Number(product.price) * Number(quantity)) + 50;
 
-    return;
-  }
-
-  document.getElementById("message").textContent =
-    "Order successfully placed!";
-
-  document.getElementById("orderForm").reset();
-
+window.location.href =
+  "payment.html?amount=" + encodeURIComponent(totalAmount);
 });
 
 loadProduct();
