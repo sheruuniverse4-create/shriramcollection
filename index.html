@@ -500,6 +500,31 @@ async function loadMyOrders() {
 
   empty.style.display = "none";
 
+  const productIds = [
+    ...new Set(
+      orders
+        .map(order => order.product_id)
+        .filter(Boolean)
+    )
+  ];
+
+  let productMap = {};
+
+  if (productIds.length > 0) {
+    const { data: products, error: productError } = await sb
+      .from("products")
+      .select("id, name, image_url")
+      .in("id", productIds);
+
+    if (productError) {
+      console.error("Product image load error:", productError);
+    } else {
+      (products || []).forEach(product => {
+        productMap[product.id] = product;
+      });
+    }
+  }
+
   orders.forEach(order => {
     const card = document.createElement("div");
 
@@ -508,14 +533,44 @@ async function loadMyOrders() {
     card.style.padding = "15px";
     card.style.marginBottom = "12px";
 
+    const product = productMap[order.product_id];
+
+    const imageHTML = product && product.image_url
+      ? `
+        <img
+          src="${product.image_url}"
+          alt="${product.name || "Product"}"
+          style="
+            width:120px;
+            height:120px;
+            object-fit:cover;
+            border-radius:10px;
+            margin-bottom:12px;
+            display:block;
+          "
+        >
+      `
+      : "";
+
     card.innerHTML = `
+      ${imageHTML}
+
       <h3>Order #${order.id}</h3>
-      <p><b>Product ID:</b> ${order.product_id}</p>
+
+      <p><b>Product:</b> ${product?.name || "Product ID: " + order.product_id}</p>
+
       <p><b>Size:</b> ${order.size || "-"}</p>
+
       <p><b>Quantity:</b> ${order.quantity}</p>
+
       <p><b>Price:</b> ₹${order.price || 0}</p>
+
       <p><b>Status:</b> ${order.status || "Pending"}</p>
-      <p><b>Order Date:</b> ${new Date(order.created_at).toLocaleString("en-IN")}</p>
+
+      <p>
+        <b>Order Date:</b>
+        ${new Date(order.created_at).toLocaleString("en-IN")}
+      </p>
     `;
 
     list.appendChild(card);
