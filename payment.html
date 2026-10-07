@@ -493,25 +493,85 @@
      PAYMENT DONE
   --------------------------- */
 
-  paymentDoneBtn.addEventListener("click", function() {
+ paymentDoneBtn.addEventListener("click", async function () {
 
-    if (!screenshotInput.files.length) {
+  if (!screenshotInput.files.length) {
+    alert("Please attach your payment screenshot first.");
+    return;
+  }
 
-      alert("Please attach your payment screenshot first.");
+  const { data: { session } } = await sb.auth.getSession();
 
-      return;
-    }
+  if (!session) {
+    alert("Please login first.");
+    return;
+  }
 
-    document.getElementById("successBox").style.display = "block";
+  const params = new URLSearchParams(window.location.search);
 
-    paymentDoneBtn.disabled = true;
+  const orderId =
+    params.get("order_id") ||
+    params.get("id");
 
-    window.scrollTo({
-      top: document.body.scrollHeight,
-      behavior: "smooth"
-    });
+  if (!orderId) {
+    alert("Order ID not found.");
+    return;
+  }
 
+  const file = screenshotInput.files[0];
+
+  const fileName =
+    session.user.id +
+    "/" +
+    orderId +
+    "-" +
+    Date.now() +
+    "-" +
+    file.name;
+
+  paymentDoneBtn.disabled = true;
+  paymentDoneBtn.textContent = "Uploading...";
+
+  const { error: uploadError } = await sb.storage
+    .from("payment_screenshots")
+    .upload(fileName, file);
+
+  if (uploadError) {
+    console.error(uploadError);
+    alert("Payment screenshot upload nahi hua.");
+    paymentDoneBtn.disabled = false;
+    paymentDoneBtn.textContent = "Payment Done";
+    return;
+  }
+
+  const { error: updateError } = await sb
+    .from("order")
+    .update({
+      payment_screenshot_url: fileName,
+      status: "Pending"
+    })
+    .eq("id", orderId)
+    .eq("user_id", session.user.id);
+
+  if (updateError) {
+    console.error(updateError);
+    alert("Order update nahi hua.");
+    paymentDoneBtn.disabled = false;
+    paymentDoneBtn.textContent = "Payment Done";
+    return;
+  }
+
+  document.getElementById("successBox").style.display = "block";
+
+  paymentDoneBtn.disabled = true;
+  paymentDoneBtn.textContent = "Payment Completed";
+
+  window.scrollTo({
+    top: document.body.scrollHeight,
+    behavior: "smooth"
   });
+
+});
 
 </script>
 
