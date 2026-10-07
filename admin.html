@@ -322,7 +322,7 @@ async function loadOrders() {
 
   displayOrders();
 }
-function displayOrders() {
+async function displayOrders() {
   const list = document.getElementById("orderList");
   const empty = document.getElementById("orderEmptyMessage");
 
@@ -407,6 +407,36 @@ select.onchange = async () => {
 };
 
 statusTd.appendChild(select);
+const screenshotTd = document.createElement("td");
+
+if (order.payment_screenshot_url) {
+  const { data: signedData, error: signedError } = await sb.storage
+    .from("payment_screenshots")
+    .createSignedUrl(order.payment_screenshot_url, 3600);
+
+  if (!signedError && signedData?.signedUrl) {
+    const img = document.createElement("img");
+    img.src = signedData.signedUrl;
+    img.alt = "Payment Screenshot";
+    img.style.width = "100px";
+    img.style.height = "100px";
+    img.style.objectFit = "cover";
+    img.style.borderRadius = "8px";
+    img.style.cursor = "pointer";
+
+    img.onclick = () => {
+      window.open(signedData.signedUrl, "_blank");
+    };
+
+    screenshotTd.appendChild(img);
+  } else {
+    screenshotTd.textContent = "Screenshot unavailable";
+  }
+} else {
+  screenshotTd.textContent = "No screenshot";
+}
+
+row.appendChild(screenshotTd);
 row.appendChild(statusTd);
     list.appendChild(row);
   });
