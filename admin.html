@@ -290,10 +290,38 @@ async function loadOrders() {
     return;
   }
 
-  orders = data || [];
+  const productIds = [
+    ...new Set(
+      (data || [])
+        .map(order => order.product_id)
+        .filter(Boolean)
+    )
+  ];
+
+  let productMap = {};
+
+  if (productIds.length > 0) {
+    const { data: productData, error: productError } = await sb
+      .from("products")
+      .select("id, name, image_url")
+      .in("id", productIds);
+
+    if (productError) {
+      console.error("Products load error:", productError);
+    } else {
+      (productData || []).forEach(product => {
+        productMap[product.id] = product;
+      });
+    }
+  }
+
+  orders = (data || []).map(order => ({
+    ...order,
+    product: productMap[order.product_id] || null
+  }));
+
   displayOrders();
 }
-
 function displayOrders() {
   const list = document.getElementById("orderList");
   const empty = document.getElementById("orderEmptyMessage");
@@ -310,20 +338,42 @@ function displayOrders() {
   orders.forEach(order => {
     const row = document.createElement("tr");
 
-    [
-      order.name,
-      order.mobile,
-      order.alternate_mobile,
-      order.address,
-      order.size,
-      order.quantity,
-      "₹" + (order.price || 0),
-      new Date(order.created_at).toLocaleString("en-IN")
-    ].forEach(value => {
-      const td = document.createElement("td");
-      td.textContent = value || "";
-      row.appendChild(td);
-    });
+    const productTd = document.createElement("td");
+
+if (order.product) {
+  if (order.product.image_url) {
+    const img = document.createElement("img");
+    img.src = order.product.image_url;
+    img.style.width = "60px";
+    img.style.height = "60px";
+    img.style.objectFit = "cover";
+    img.style.display = "block";
+    productTd.appendChild(img);
+  }
+
+  const productName = document.createElement("div");
+  productName.textContent = order.product.name || "Product";
+  productTd.appendChild(productName);
+} else {
+  productTd.textContent = "Product not found";
+}
+
+row.appendChild(productTd);
+
+[
+  order.name,
+  order.mobile,
+  order.alternate_mobile,
+  order.address,
+  order.size,
+  order.quantity,
+  "₹" + (order.price || 0),
+  new Date(order.created_at).toLocaleString("en-IN")
+].forEach(value => {
+  const td = document.createElement("td");
+  td.textContent = value || "";
+  row.appendChild(td);
+});
 const statusTd = document.createElement("td");
 
 const select = document.createElement("select");
