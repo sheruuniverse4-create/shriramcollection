@@ -161,15 +161,12 @@
 
   <h1>Shri Ram Collection</h1>
 
-  <!-- TOP WARNING -->
   <div class="box warning">
     ⚠️ IMPORTANT NOTICE<br><br>
     Step 4: Please complete your payment within 5 minutes.
     Otherwise, your payment session may be cancelled.
   </div>
 
-
-  <!-- STEPS -->
   <div class="box">
 
     <h2>Payment Instructions</h2>
@@ -207,8 +204,6 @@
 
   </div>
 
-
-  <!-- AMOUNT -->
   <div class="box amount">
 
     <b>Order Amount:</b>
@@ -226,8 +221,6 @@
 
   </div>
 
-
-  <!-- QR -->
   <div class="box qr">
 
     <h2>Scan & Pay</h2>
@@ -239,8 +232,6 @@
 
   </div>
 
-
-  <!-- TIMER -->
   <div class="box">
 
     <h2 style="text-align:center;">
@@ -253,8 +244,6 @@
 
   </div>
 
-
-  <!-- SCREENSHOT -->
   <div class="box">
 
     <h2>Payment Screenshot</h2>
@@ -280,26 +269,24 @@
 
   </div>
 
-
-  <!-- WHATSAPP -->
   <div class="box">
 
     <button
       class="btn whatsapp"
       id="whatsappBtn"
+      type="button"
     >
       WhatsApp
     </button>
 
   </div>
 
-
-  <!-- PAYMENT DONE -->
   <div class="box">
 
     <button
       class="btn payment-done"
       id="paymentDoneBtn"
+      type="button"
       disabled
     >
       Payment Done
@@ -307,8 +294,6 @@
 
   </div>
 
-
-  <!-- SUCCESS -->
   <div class="box success" id="successBox">
 
     <h2>🎉 Congratulations!</h2>
@@ -329,8 +314,6 @@
 
   </div>
 
-
-  <!-- LAST WARNING -->
   <div class="box last-warning">
 
     <b>⚠️ Important Rules</b>
@@ -358,23 +341,43 @@
 
 </div>
 
-
-
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script>
+
+<script>
+
+  /* ---------------------------
+     SUPABASE CONNECTION
+  --------------------------- */
+
+  const SUPABASE_URL =
+    "https://zyreggzaomelsfddbibs.supabase.co";
+
+  const SUPABASE_ANON_KEY =
+    "PASTE_YOUR_EXISTING_PUBLISHABLE_KEY_HERE";
+
+  const sb = window.supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_ANON_KEY
+  );
+
+
   /* ---------------------------
      ORDER AMOUNT
   --------------------------- */
 
-  const params = new URLSearchParams(window.location.search);
+  const params =
+    new URLSearchParams(window.location.search);
 
-  const amount = Number(params.get("amount")) || 0;
+  const amount =
+    Number(params.get("amount")) || 0;
 
-  document.getElementById("orderAmount").textContent = amount;
+  document.getElementById("orderAmount").textContent =
+    amount;
 
   const total = amount;
 
-  document.getElementById("totalAmount").textContent = total;
+  document.getElementById("totalAmount").textContent =
+    total;
 
 
   /* ---------------------------
@@ -383,13 +386,19 @@
 
   let timeLeft = 5 * 60;
 
-  const timer = document.getElementById("timer");
-  const paymentDoneBtn = document.getElementById("paymentDoneBtn");
+  const timer =
+    document.getElementById("timer");
+
+  const paymentDoneBtn =
+    document.getElementById("paymentDoneBtn");
 
   const countdown = setInterval(() => {
 
-    const minutes = Math.floor(timeLeft / 60);
-    const seconds = timeLeft % 60;
+    const minutes =
+      Math.floor(timeLeft / 60);
+
+    const seconds =
+      timeLeft % 60;
 
     timer.textContent =
       String(minutes).padStart(2, "0") +
@@ -404,7 +413,9 @@
 
       paymentDoneBtn.disabled = true;
 
-      alert("Payment time has expired. Please start the payment process again.");
+      alert(
+        "Payment time has expired. Please start the payment process again."
+      );
 
       return;
     }
@@ -415,7 +426,7 @@
 
 
   /* ---------------------------
-     SCREENSHOT UPLOAD
+     SCREENSHOT
   --------------------------- */
 
   const screenshotInput =
@@ -428,151 +439,255 @@
     document.getElementById("previewImage");
 
 
-  screenshotInput.addEventListener("change", function() {
+  screenshotInput.addEventListener(
+    "change",
+    function() {
 
-    const file = this.files[0];
+      const file = this.files[0];
 
-    if (!file) {
+      if (!file) {
 
-      paymentDoneBtn.disabled = true;
+        paymentDoneBtn.disabled = true;
 
-      preview.style.display = "none";
+        preview.style.display = "none";
 
-      return;
+        return;
+      }
+
+      if (!file.type.startsWith("image/")) {
+
+        alert(
+          "Please attach a valid image screenshot."
+        );
+
+        this.value = "";
+
+        paymentDoneBtn.disabled = true;
+
+        return;
+      }
+
+      const reader =
+        new FileReader();
+
+      reader.onload =
+        function(event) {
+
+          previewImage.src =
+            event.target.result;
+
+          preview.style.display =
+            "block";
+
+          paymentDoneBtn.disabled =
+            false;
+
+        };
+
+      reader.readAsDataURL(file);
+
     }
-
-    if (!file.type.startsWith("image/")) {
-
-      alert("Please attach a valid image screenshot.");
-
-      this.value = "";
-
-      paymentDoneBtn.disabled = true;
-
-      return;
-    }
-
-    const reader = new FileReader();
-
-    reader.onload = function(event) {
-
-      previewImage.src = event.target.result;
-
-      preview.style.display = "block";
-
-      paymentDoneBtn.disabled = false;
-
-    };
-
-    reader.readAsDataURL(file);
-
-  });
+  );
 
 
   /* ---------------------------
      WHATSAPP
   --------------------------- */
 
-  document.getElementById("whatsappBtn")
-    .addEventListener("click", function() {
+  document
+    .getElementById("whatsappBtn")
+    .addEventListener(
+      "click",
+      function() {
 
-      const message =
-        "Hello Shri Ram Collection, I have completed my payment. Order amount: ₹"
-        + total
-        + ". I am sending my payment confirmation.";
+        const message =
+          "Hello Shri Ram Collection, I have completed my payment. Order amount: ₹"
+          + total
+          + ". I am sending my payment confirmation.";
 
-      const whatsappURL =
-        "https://wa.me/919971706967?text="
-        + encodeURIComponent(message);
+        const whatsappURL =
+          "https://wa.me/919971706967?text="
+          + encodeURIComponent(message);
 
-      window.open(whatsappURL, "_blank");
+        window.open(
+          whatsappURL,
+          "_blank"
+        );
 
-    });
+      }
+    );
 
 
   /* ---------------------------
      PAYMENT DONE
   --------------------------- */
 
- paymentDoneBtn.addEventListener("click", async function () {
+  paymentDoneBtn.addEventListener(
+    "click",
+    async function() {
 
-  if (!screenshotInput.files.length) {
-    alert("Please attach your payment screenshot first.");
-    return;
-  }
+      if (!screenshotInput.files.length) {
 
-  const { data: { session } } = await sb.auth.getSession();
+        alert(
+          "Please attach your payment screenshot first."
+        );
 
-  if (!session) {
-    alert("Please login first.");
-    return;
-  }
+        return;
+      }
 
-  const params = new URLSearchParams(window.location.search);
+      const {
+        data: { session }
+      } = await sb.auth.getSession();
 
-  const orderId =
-    params.get("order_id") ||
-    params.get("id");
+      if (!session) {
 
-  if (!orderId) {
-    alert("Order ID not found.");
-    return;
-  }
+        alert(
+          "Please login first."
+        );
 
-  const file = screenshotInput.files[0];
+        return;
+      }
 
-  const fileName =
-    session.user.id +
-    "/" +
-    orderId +
-    "-" +
-    Date.now() +
-    "-" +
-    file.name;
+      const currentParams =
+        new URLSearchParams(
+          window.location.search
+        );
 
-  paymentDoneBtn.disabled = true;
-  paymentDoneBtn.textContent = "Uploading...";
+      const orderId =
+        currentParams.get("order_id") ||
+        currentParams.get("id");
 
-  const { error: uploadError } = await sb.storage
-    .from("payment_screenshots")
-    .upload(fileName, file);
+      if (!orderId) {
 
-  if (uploadError) {
-    console.error(uploadError);
-    alert("Payment screenshot upload nahi hua.");
-    paymentDoneBtn.disabled = false;
-    paymentDoneBtn.textContent = "Payment Done";
-    return;
-  }
+        alert(
+          "Order ID not found."
+        );
 
-  const { error: updateError } = await sb
-    .from("order")
-    .update({
-      payment_screenshot_url: fileName,
-      status: "Pending"
-    })
-    .eq("id", orderId)
-    .eq("user_id", session.user.id);
+        return;
+      }
 
-  if (updateError) {
-    console.error(updateError);
-    alert("Order update nahi hua.");
-    paymentDoneBtn.disabled = false;
-    paymentDoneBtn.textContent = "Payment Done";
-    return;
-  }
+      const file =
+        screenshotInput.files[0];
 
-  document.getElementById("successBox").style.display = "block";
+      const fileName =
+        session.user.id +
+        "/" +
+        orderId +
+        "-" +
+        Date.now() +
+        "-" +
+        file.name;
 
-  paymentDoneBtn.disabled = true;
-  paymentDoneBtn.textContent = "Payment Completed";
+      paymentDoneBtn.disabled = true;
 
-  window.scrollTo({
-    top: document.body.scrollHeight,
-    behavior: "smooth"
-  });
+      paymentDoneBtn.textContent =
+        "Uploading...";
 
-});
+
+      /* UPLOAD SCREENSHOT */
+
+      const {
+        error: uploadError
+      } = await sb.storage
+        .from("payment_screenshots")
+        .upload(
+          fileName,
+          file
+        );
+
+      if (uploadError) {
+
+        console.error(
+          "Upload error:",
+          uploadError
+        );
+
+        alert(
+          "Payment screenshot upload nahi hua."
+        );
+
+        paymentDoneBtn.disabled =
+          false;
+
+        paymentDoneBtn.textContent =
+          "Payment Done";
+
+        return;
+      }
+
+
+      /* UPDATE ORDER */
+
+      const {
+        error: updateError
+      } = await sb
+        .from("order")
+        .update({
+
+          payment_screenshot_url:
+            fileName,
+
+          status:
+            "Pending"
+
+        })
+        .eq(
+          "id",
+          orderId
+        )
+        .eq(
+          "user_id",
+          session.user.id
+        );
+
+
+      if (updateError) {
+
+        console.error(
+          "Order update error:",
+          updateError
+        );
+
+        alert(
+          "Order update nahi hua."
+        );
+
+        paymentDoneBtn.disabled =
+          false;
+
+        paymentDoneBtn.textContent =
+          "Payment Done";
+
+        return;
+      }
+
+
+      /* SUCCESS */
+
+      document
+        .getElementById("successBox")
+        .style.display =
+        "block";
+
+      paymentDoneBtn.disabled =
+        true;
+
+      paymentDoneBtn.textContent =
+        "Payment Completed";
+
+
+      window.scrollTo({
+
+        top:
+          document.body.scrollHeight,
+
+        behavior:
+          "smooth"
+
+      });
+
+    }
+  );
 
 </script>
 
